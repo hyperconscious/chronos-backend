@@ -1,0 +1,42 @@
+services:
+  mysqldb:
+    container_name: mysqldb
+    image: mysql:8.0
+    env_file: .env
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASS}
+      - MYSQL_DATABASE=${DB_NAME}
+    ports:
+      - "${MYSQLDB_LOCAL_PORT}:${MYSQLDB_DOCKER_PORT}"
+    volumes:
+      - chronos_volume:/var/lib/mysql
+    networks:
+      - chronos_network
+
+  chronos:
+    container_name: chronos
+    depends_on:
+      - mysqldb
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      sh -c "npm run db:migrate && npm run start"
+    image: chronos
+    env_file: .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    ports:
+      - "${NODE_LOCAL_PORT}:${NODE_DOCKER_PORT}"
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - chronos_network
+
+networks:
+  chronos_network:
+    driver: bridge
+
+volumes:
+  chronos_volume:
+    driver: local
