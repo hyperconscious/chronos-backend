@@ -2,12 +2,17 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { IsEmail, Length } from 'class-validator';
 import * as bcrypt from 'bcryptjs';
+import { Calendar } from './calendar.entity';
+import { Event } from './event.entity';
 
 export enum UserRole {
   Admin = 'admin',
@@ -46,6 +51,17 @@ export class User {
     default: UserRole.User,
   })
   role!: UserRole;
+
+  @ManyToMany(() => Calendar, calendar => calendar.users)
+  @JoinTable()
+  calendars!: Calendar[];
+
+  @ManyToMany(() => Event, event => event.participants)
+  @JoinTable()
+  events!: Event[];
+
+  @OneToMany(() => Event, event => event.creator)
+  createdEvents!: Event[];
 
   @Column()
   @CreateDateColumn()
