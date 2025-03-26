@@ -11,7 +11,7 @@ eventRouter.get('/user', auth, EventController.getUserEvents);
 
 eventRouter.post('/:calendarId/event', auth, EventController.addEventToCalendar);
 
-eventRouter.put('/:id', auth, EventController.updateEvent);
+eventRouter.patch('/:id', auth, EventController.updateEvent);
 
 eventRouter.delete('/:id', auth, EventController.deleteEvent);
 

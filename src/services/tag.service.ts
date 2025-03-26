@@ -31,7 +31,6 @@ export class TagService {
 
   public async createTag(tagData: Partial<Tag>, calendar: Calendar): Promise<Tag> {
     this.validateTagDTO(tagData, ServiceMethod.create);
-    
     tagData.calendar = calendar;
     const newTag = this.tagRepository.create(tagData);
 

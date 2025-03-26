@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, Repository } from 'typeorm';
 import { BadRequestError, NotFoundError } from '../utils/http-errors';
 import { Event } from '../entities/event.entity';
 import { AppDataSource } from '../config/orm.config';
@@ -57,6 +57,42 @@ export class EventService {
         events.push(await this.createEvent(eventData, creator_id, calendar.id));
     }
     return events;
+  }
+
+  public async getEventsStartingAt(date: Date): Promise<Event[]> {
+    const events = await this.eventRepository.find({
+      where: { startTime: LessThanOrEqual(date), isNotifiedStart: false },
+      relations: ['calendar'],
+
+    });
+
+    return events;
+  }
+
+  public async updateEventTimeRange(event: Event, newStart: Date, newEnd: Date)
+  {
+    event.startTime = newStart;
+    event.endTime = newEnd;
+    return this.eventRepository.save(event);
+  }
+
+  public async getEventsEndingAt(date: Date): Promise<Event[]> {
+    const events = await this.eventRepository.find({
+      where: { endTime: LessThanOrEqual(date), isNotifiedEnd: false },
+      relations: ['calendar'],
+    });
+
+    return events;
+  }
+
+  public async markEventAsNotified(event: Event): Promise<Event> {
+    event.isNotifiedStart = true;
+    return this.eventRepository.save(event);
+  }
+
+  public async markEventAsCompleted(event: Event): Promise<Event> {
+    event.isNotifiedEnd = true;
+    return this.eventRepository.save(event);
   }
 
   public async updateEvent(id: number, eventData: Partial<Event>): Promise<Event> {

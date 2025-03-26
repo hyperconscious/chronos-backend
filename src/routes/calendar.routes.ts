@@ -13,7 +13,7 @@ calendarRouter.post('/:id/event', auth, CalendarController.createEvent);
 calendarRouter.post('/:id/share', auth, CalendarController.shareCalendar);
 calendarRouter.post('/:id/visitor', auth, CalendarController.addVisitorToCalendar);
 
-calendarRouter.put('/:id', auth, CalendarController.updateCalendar);
+calendarRouter.patch('/:id', auth, CalendarController.updateCalendar);
 
 calendarRouter.delete('/:id', auth, CalendarController.deleteCalendar);
 calendarRouter.delete('/:id/visitor', auth, CalendarController.removeVisitorFromCalendar);

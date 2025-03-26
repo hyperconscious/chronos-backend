@@ -27,27 +27,27 @@ export class Notification {
 
     @Column()
     title!: string;
-    
+
     @Column({ type: 'text' })
     message!: string;
-    
+
     @Column({
     type: 'enum',
     enum: NotificationType
     })
     type!: NotificationType;
-    
+
     @Column({ default: false })
     isRead!: boolean;
-    
+
     @ManyToOne(() => User)
     @JoinColumn()
     user!: User;
-    
+
     @ManyToOne(() => Event, { nullable: true })
     @JoinColumn()
     relatedEvent?: Event;
-    
+
     @CreateDateColumn()
     createdAt!: Date;
 }

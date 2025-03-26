@@ -39,16 +39,16 @@ export class Event {
 
     @Column()
     title!: string;
-    
+
     @Column({ nullable: true, type: 'text' })
     description?: string;
-    
+
     @Column({ type: 'timestamp' })
     startTime!: Date;
-    
+
     @Column({ type: 'timestamp' })
     endTime?: Date;
-    
+
     @Column({
     type: 'enum',
     enum: EventType,
@@ -62,11 +62,11 @@ export class Event {
     default: EventRecurrence.None
     })
     recurrence!: EventRecurrence;
-    
+
     @ManyToOne(() => User, user => user.createdEvents)
     @JoinColumn()
     creator!: User;
-    
+
     @ManyToMany(() => Tag, tag => tag.events)
     @JoinTable()
     tags?: Tag[];
@@ -74,10 +74,17 @@ export class Event {
     @ManyToOne(() => Calendar, calendar => calendar.events)
     @JoinColumn({ name: 'calendar_id' })
     calendar!: Calendar;
-    
+
     @CreateDateColumn()
     createdAt!: Date;
-    
+
     @UpdateDateColumn()
     updatedAt!: Date;
+
+    @Column({ default: false })
+    isNotifiedStart!: boolean;
+
+    @Column({ default: false })
+    isNotifiedEnd!: boolean;
+
 }
