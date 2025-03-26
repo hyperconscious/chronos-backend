@@ -6,16 +6,19 @@ import {
   UnauthorizedError,
 } from '../utils/http-errors';
 import { StatusCodes } from 'http-status-codes';
-import { UserRole } from '../entities/user.entity';
 import { queryOptionsDto, QueryOptions } from '../dto/query-options.dto';
 import { JWTService } from '../services/jwt.service';
 import { MailService } from '../services/mail.service';
 import { createUserDto } from '../dto/user.dto';
+import { CalendarService } from '../services/calendar.service';
+import axios from 'axios';
+
 
 export class UserController {
   private static jwtService = new JWTService();
   private static mailService = new MailService();
   private static userService = new UserService();
+  private static calendarService = new CalendarService();
 
   private static validateQueryDto(req: Request): QueryOptions {
     const { error, value: queryOptions } = queryOptionsDto.validate(req.query, {
@@ -54,32 +57,31 @@ export class UserController {
     ) {
       throw new BadRequestError('Password confirmation does not match.');
     }
+
+   
     let verified = false;
-    if (req.user?.role === UserRole.Admin) {
-      verified = true;
-    }
 
     const newUser = await UserController.userService.createUser({
       ...UserDto,
       verified,
     });
 
+    
+
     return res.status(StatusCodes.CREATED).json({ data: newUser });
   }
+
+  
 
   public static async updateUser(req: Request, res: Response) {
     const callbackUrl = req.headers['x-callback-url'];
     const userData = req.body;
     const userId = req.user!.id;
 
-    if (
-      (req.user?.role !== UserRole.Admin &&
-        userId !== parseInt(req.params.user_id, 10)) ||
-      (userData.UserRole && req.user?.role !== UserRole.Admin)
-    ) {
+    if (userId !== parseInt(req.params.user_id, 10)) 
+    {
       throw new ForbiddenError('You are not authorized to update this user.');
     }
-
     if (userData.login) {
       const user = await UserController.userService.getUserByLoginSafe(
         userData.login,
@@ -115,7 +117,7 @@ export class UserController {
     }
 
     const user = await UserController.userService.getUserById(userId);
-    if (userId !== req.user?.id && req.user?.role !== UserRole.Admin) {
+    if (userId !== req.user?.id) {
       throw new ForbiddenError('You are not authorized to update this user.');
     }
 
@@ -133,7 +135,7 @@ export class UserController {
     const userId = Number(req.params.user_id);
 
     if (
-      req.user?.role !== UserRole.Admin &&
+
       userId !== parseInt(req.params.user_id, 10)
     ) {
       throw new ForbiddenError('You are not authorized to update this user.');

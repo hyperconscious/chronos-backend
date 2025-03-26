@@ -2,7 +2,10 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
+    JoinTable,
     ManyToMany,
+    ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     Unique,
@@ -11,31 +14,37 @@ import {
   
   import { User } from './user.entity';
   import { Event } from './event.entity';
+import { Tag } from './tag.entity';
   
-  @Entity()
-  @Unique(['id'])
-  export class Calendar {
+@Entity()
+@Unique(['id'])
+export class Calendar {
       @PrimaryGeneratedColumn()
       id!: number;
-  
+
       @Column()
       title!: string;
       
       @Column({ nullable: true })
       description?: string;
-      
-      @Column({ default: '#3498db' })
-      color!: string;
-  
+
+      @ManyToOne(() => User, { eager: true })
+      @JoinColumn({ name: 'user_id' })
+      owner!: User;
+
       @ManyToMany(() => User, user => user.calendars)
-      users!: User[];
+      @JoinTable()
+      visitors?: User[];
       
       @OneToMany(() => Event, event => event.calendar)
-      events!: Event[];
+      events?: Event[];
+
+      @OneToMany(() => Tag, tag => tag.calendar)
+      tags?: Tag[];
       
       @CreateDateColumn()
       createdAt!: Date;
       
       @UpdateDateColumn()
       updatedAt!: Date;
-  }
+}

@@ -8,12 +8,15 @@ import requestLogger from './middlewares/request-loger.middleware';
 import { router as apiRoutes } from './routes/index.routes';
 import { databaseService } from './services/database.service';
 import { errorMiddleware } from './middlewares/error-handle.middleware';
-import { NotFoundError } from './utils/http-errors';
+import { BadRequestError, NotFoundError } from './utils/http-errors';
 import path from 'path';
 import setupSwagger from './config/swagger';
 
-class UsofServer {
+var bodyParser = require('body-parser');
+
+class ChronosServer {
   private app: express.Application;
+
 
   constructor() {
     this.app = express();
@@ -30,6 +33,7 @@ class UsofServer {
     this.app.use(cors());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
+
     this.app.use(requestLogger);
   }
 
@@ -57,4 +61,4 @@ class UsofServer {
   }
 }
 
-export default UsofServer;
+export default ChronosServer;

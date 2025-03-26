@@ -1,8 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { uploadSingle } from '../config/file-upload.config';
-import { auth, authorizeRole } from '../middlewares/auth.middleware';
-import { UserRole } from '../entities/user.entity';
+import { auth } from '../middlewares/auth.middleware';
 const userRouter = Router();
 
 userRouter.get('/', auth, UserController.getAllUsers);
@@ -10,7 +9,6 @@ userRouter.get('/', auth, UserController.getAllUsers);
 userRouter.post(
   '/',
   auth,
-  authorizeRole(UserRole.Admin),
   UserController.createUser,
 );
 

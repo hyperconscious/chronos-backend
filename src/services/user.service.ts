@@ -59,6 +59,8 @@ export class UserService {
 
     newUser.hashPassword();
 
+    
+
     return this.userRepository.save(newUser);
   }
 
@@ -149,3 +151,4 @@ export class UserService {
     }
   }
 }
+

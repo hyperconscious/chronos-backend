@@ -19,10 +19,13 @@ export class MailService {
         user: config.mail.user,
         pass: config.mail.pass,
       },
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
 
     const mailOptions = {
-      from: '"Usof" <nikonov.kirill@gmail.com>',
+      from: '"Chronos"',
       to: email,
       subject: 'Email Verification',
       text: `Please verify your email by clicking this link: ${verificationLink}`,
@@ -50,7 +53,7 @@ export class MailService {
     });
 
     const mailOptions = {
-      from: '"Usof" <nikonov.kirill@gmail.com>',
+      from: '"Chronos"',
       to: email,
       subject: 'Reset Password',
       text: `You can reset your password by folowing this link: ${resetLink}`,

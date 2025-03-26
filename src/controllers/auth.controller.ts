@@ -9,11 +9,20 @@ import {
 } from '../utils/http-errors';
 import { MailService } from '../services/mail.service';
 import { User } from '../entities/user.entity';
+import axios from 'axios';
+import { CalendarService } from '../services/calendar.service';
+import { getHolidays } from '../utils/holidays';
+import { EventService } from '../services/event.service';
+import { EventRecurrence, EventType } from '../entities/event.entity';
+
+const isoCountries = require("i18n-iso-countries");
 
 export class AuthController {
   private static userService = new UserService();
   private static jwtService = new JWTService();
   private static mailService = new MailService();
+  private static calendarService = new CalendarService();
+  private static eventService = new EventService();
 
   public static async register(req: Request, res: Response) {
     const {
@@ -22,23 +31,53 @@ export class AuthController {
       full_name,
       passwordConfirmation,
       email,
-      role = 'user',
+      countryCode
     } = req.body;
+    console.log(req.body);
     if (password !== passwordConfirmation) {
       throw new BadRequestError('Password confirmation does not match.');
     }
-
+    
     const user = await AuthController.userService.createUser({
       login,
       password,
       full_name,
       email,
-      role,
     });
     const accessToken = AuthController.jwtService.generateAccessToken(user);
     const refreshToken = AuthController.jwtService.generateRefreshToken(user);
-    // const mailToken = AuthController.jwtService.generateEmailToken(user);
 
+    
+    const calendar = await AuthController.calendarService.createCalendar({
+      title: 'My Calendar',
+    }, user.id);
+
+    const holidays = await getHolidays(countryCode);
+    
+    for (const holiday of holidays) {
+      let startDate = new Date(holiday.date);
+      let endDate = new Date(holiday.date);
+
+      startDate.setUTCHours(0, 0, 0, 0);
+      endDate.setUTCHours(23, 59, 0, 0);
+
+      let now = new Date();
+      if (startDate < now) {
+          startDate.setFullYear(startDate.getFullYear() + 1);
+          endDate.setFullYear(endDate.getFullYear() + 1);
+      }
+
+      await AuthController.eventService.createEvent({
+        title: holiday.name,
+        description: 'It is a holiday!',
+        startTime: startDate,
+        endTime: endDate,
+        recurrence: EventRecurrence.Yearly,
+        type: EventType.Reminder
+      }, user.id, calendar.id);
+    }
+    // const mailToken = AuthController.jwtService.generateEmailToken(user);
+    
     // await AuthController.mailService.sendVerificationEmail(
     //   user.email,
     //   mailToken,

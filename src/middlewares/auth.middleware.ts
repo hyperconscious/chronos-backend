@@ -15,18 +15,6 @@ export function auth(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-export function authorizeRole(requiredRole: string) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const userRole = req.user?.role;
-
-    if (!userRole || userRole !== requiredRole) {
-      throw new ForbiddenError('Access denied.');
-    }
-
-    next();
-  };
-}
-
 export function authorizeUser(req: Request, res: Response, next: NextFunction) {
   const token = req.headers.authorization?.split(' ')[1];
 

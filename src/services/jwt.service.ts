@@ -41,7 +41,7 @@ export class JWTService implements IJWTService {
 
   public generateAccessToken(user: User): string {
     return jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id},
       this.accessTokenSecret,
       { expiresIn: '1d' }
     );
@@ -49,7 +49,7 @@ export class JWTService implements IJWTService {
 
   public generateRefreshToken(user: User): string {
     return jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id},
       this.refreshTokenSecret,
       { expiresIn: '7d' }
     );
@@ -103,6 +103,6 @@ export class JWTService implements IJWTService {
       default:
         throw new BadRequestError('Invalid token type.');
     }
-    return { id: payload.id, role: payload.role, email: payload.email } as User;
+    return { id: payload.id, email: payload.email } as User;
   }
 }

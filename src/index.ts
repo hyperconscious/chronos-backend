@@ -1,10 +1,10 @@
 import config from './config/env.config';
-import UsofServer from './app';
+import ChronosServer from './app';
 import { startupLogger } from './utils/logger';
 
 function start() {
   try {
-    const server = new UsofServer();
+    const server = new ChronosServer();
     server.start(config.port);
   } catch (error) {
     startupLogger.error(

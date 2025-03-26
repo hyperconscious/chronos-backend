@@ -14,10 +14,9 @@ import { Event } from './event.entity';
 
 export enum NotificationType {
     EventReminder = 'event_reminder',
+    EventChange = 'event_change',
+    EventCancellation = 'event_cancellation',
     EventInvitation = 'event_invitation',
-    TaskReminder = 'task_reminder',
-    TaskAssignment = 'task_assignment',
-    SystemNotification = 'system_notification'
 }
 
 @Entity()

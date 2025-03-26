@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import config from './env.config';
 
+
 export const AppDataSource = new DataSource({
   type: 'mysql',
   host: config.host,

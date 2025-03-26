@@ -8,9 +8,11 @@ import {
     Unique,
     UpdateDateColumn,
     JoinTable,
+    ManyToOne,
 } from 'typeorm';
 
 import { Event } from './event.entity';
+import { Calendar } from './calendar.entity';
 
 @Entity()
 @Unique(['id'])
@@ -29,7 +31,10 @@ export class Tag {
     
     @ManyToMany(() => Event, event => event.tags)
     @JoinTable()
-    events!: Event[];
+    events?: Event[];
+
+    @ManyToOne(() => Calendar, calendar => calendar.tags)
+    calendar!: Calendar;
     
     @CreateDateColumn()
     createdAt!: Date;

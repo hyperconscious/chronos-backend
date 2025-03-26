@@ -4,6 +4,7 @@ import {
     CreateDateColumn,
     Entity,
     JoinColumn,
+    JoinTable,
     ManyToMany,
     ManyToOne,
     PrimaryGeneratedColumn,
@@ -21,15 +22,13 @@ export enum EventRecurrence {
     Weekly = 'weekly',
     BiWeekly = 'biweekly',
     Monthly = 'monthly',
-    Yearly = 'yearly',
-    Custom = 'custom'
+    Yearly = 'yearly'
 }
 
-export enum EventPriority {
-    Low = 'low',
-    Medium = 'medium',
-    High = 'high',
-    Urgent = 'urgent'
+export enum EventType {
+    Arrangement = 'arrangement',
+    Reminder = 'reminder',
+    Task = 'task',
 }
 
 @Entity()
@@ -50,12 +49,13 @@ export class Event {
     @Column({ type: 'timestamp' })
     endTime!: Date;
     
-    @Column({ default: false })
-    isAllDay!: boolean;
-    
-    @Column({ nullable: true })
-    location?: string;
-    
+    @Column({
+    type: 'enum',
+    enum: EventType,
+    default: EventType.Arrangement
+    })
+    type!: EventType;
+
     @Column({
     type: 'enum',
     enum: EventRecurrence,
@@ -63,32 +63,17 @@ export class Event {
     })
     recurrence!: EventRecurrence;
     
-    @Column({ nullable: true })
-    recurrenceEndDate?: Date;
-    
-    @Column({
-    type: 'enum',
-    enum: EventPriority,
-    default: EventPriority.Medium
-    })
-    priority!: EventPriority;
-    
-    @Column({ default: false })
-    isCompleted!: boolean;
-    
-    @ManyToOne(() => Calendar, calendar => calendar.events)
-    @JoinColumn()
-    calendar!: Calendar;
-    
     @ManyToOne(() => User, user => user.createdEvents)
     @JoinColumn()
     creator!: User;
     
-    @ManyToMany(() => User, user => user.events)
-    participants!: User[];
-    
     @ManyToMany(() => Tag, tag => tag.events)
-    tags!: Tag[];
+    @JoinTable()
+    tags?: Tag[];
+
+    @ManyToOne(() => Calendar, calendar => calendar.events)
+    @JoinColumn({ name: 'calendar_id' })
+    calendar!: Calendar;
     
     @CreateDateColumn()
     createdAt!: Date;

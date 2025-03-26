@@ -51,8 +51,8 @@ export class Paginator<T> {
             searchTerm: `${searchTerm}%`,
           },
         );
-      } else if (this.queryOptions.searchType === 'category') {
-        queryBuilder.andWhere('category.title LIKE :searchTerm', {
+      } else if (this.queryOptions.searchType === 'tag') {
+        queryBuilder.andWhere('tag.name LIKE :searchTerm', {
           searchTerm: `${searchTerm}%`,
         });
       }
