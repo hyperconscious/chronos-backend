@@ -47,7 +47,7 @@ export class Event {
     startTime!: Date;
     
     @Column({ type: 'timestamp' })
-    endTime!: Date;
+    endTime?: Date;
     
     @Column({
     type: 'enum',

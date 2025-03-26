@@ -21,7 +21,6 @@ export class DatabaseSeeder {
                 'event_tags_tag', 
                 'event', 
                 'tag', 
-                'user_shared_calendars_calendar', 
                 'calendar', 
                 'user'
             ];

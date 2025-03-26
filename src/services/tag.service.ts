@@ -4,6 +4,7 @@ import { Tag } from '../entities/tag.entity';
 import { AppDataSource } from '../config/orm.config';
 import { createTagDto, updateTagDto } from '../dto/tag.dto';
 import { Paginator, QueryOptions } from '../utils/paginator';
+import { Calendar } from '../entities/calendar.entity';
 
 export const enum ServiceMethod {
   create,
@@ -28,13 +29,15 @@ export class TagService {
     }
   }
 
-  public async createTag(tagData: Partial<Tag>): Promise<Tag> {
+  public async createTag(tagData: Partial<Tag>, calendar: Calendar): Promise<Tag> {
     this.validateTagDTO(tagData, ServiceMethod.create);
-
+    
+    tagData.calendar = calendar;
     const newTag = this.tagRepository.create(tagData);
 
     const existingTag = await this.tagRepository.findOne({
       where: { name: newTag.name },
+
     });
 
     if (existingTag) {
@@ -53,6 +56,7 @@ export class TagService {
 
     return this.tagRepository.save(updatedTag);
   }
+
 
   public async getTagById(id: number): Promise<Tag> {
     const tag = await this.tagRepository.findOneBy({ id });

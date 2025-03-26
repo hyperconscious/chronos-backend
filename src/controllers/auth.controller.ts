@@ -37,6 +37,10 @@ export class AuthController {
     if (password !== passwordConfirmation) {
       throw new BadRequestError('Password confirmation does not match.');
     }
+    if(!isoCountries.isValid(countryCode)) {
+      throw new BadRequestError('Invalid country code.');
+    }
+    const holidays = await getHolidays(countryCode);
     
     const user = await AuthController.userService.createUser({
       login,
@@ -52,7 +56,6 @@ export class AuthController {
       title: 'My Calendar',
     }, user.id);
 
-    const holidays = await getHolidays(countryCode);
     
     for (const holiday of holidays) {
       let startDate = new Date(holiday.date);

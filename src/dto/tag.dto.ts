@@ -10,13 +10,16 @@ export const createTagDto = Joi.object({
   color: Joi.string()
     .pattern(/^#([0-9A-Fa-f]{3}){1,2}$/)
     .default('#6c757d')
+    .optional()
     .messages({
       'string.pattern.base': 'Color must be a valid hex code (e.g., #RRGGBB or #RGB).'
     }),
 
   description: Joi.string().max(255).allow(null, '').messages({
     'string.max': 'Description must be at most 255 characters long.'
-  })
+  }),
+
+
 });
 
 export const updateTagDto = Joi.object({

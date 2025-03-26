@@ -9,6 +9,7 @@ export interface Filters {
   calendar_id?: number;
   eventId?: number;
   tagId?: number;
+  creatorId?: number;
   notificationId?: number;
 }
 
@@ -18,6 +19,7 @@ export interface QueryOptions {
   sortField?: string;
   sortDirection?: 'ASC' | 'DESC';
   filters?: Filters;
+  creatorId?: number;
   search?: string;
   searchType?: SearchType;
 }
@@ -32,6 +34,7 @@ export const queryOptionsDto = Joi.object({
     userId: Joi.number().integer().min(1).optional(),
     calendar_id: Joi.number().integer().min(1).optional(),
     eventId: Joi.number().integer().min(1).optional(),
+    creatorId: Joi.number().integer().min(1).optional(),
     tagId: Joi.number().integer().min(1).optional(),
     notificationId: Joi.number().integer().min(1).optional(),
   }).optional(),

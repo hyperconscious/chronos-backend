@@ -77,15 +77,96 @@ export class CalendarController {
     }
 
     public static async shareCalendar(req: Request, res: Response) {
+
+        if (!req.user) {
+            throw new UnauthorizedError('You need to be logged in.');
+        }
+
         const calendarId = parseInt(req.params.id, 10);
+        const calendar = await CalendarController.calendarService.getCalendarById(calendarId);
+
+        if(calendar.owner.id !== req.user.id) {
+            throw new ForbiddenError('You are not allowed to share this calendar.');
+        }
+
         let usersId: number[] = [];
         for (let i = 0; i < req.body.usersId.length; i++) {
             usersId.push(parseInt(req.body.usersId[i]));
         }
+        
         const sharedCalendar = await CalendarController.calendarService.shareCalendar(calendarId, usersId);
 
         return res.status(StatusCodes.CREATED).json({ data: sharedCalendar });
     }
 
+    public static async getCalendarById(req: Request, res: Response) {
+        const calendarId = parseInt(req.params.id, 10);
+        if (!calendarId) {
+            throw new BadRequestError('Calendar ID is required');
+        }
+        const calendar = await CalendarController.calendarService.getCalendarById(calendarId);
+        return res.status(StatusCodes.OK).json(calendar);
+    }
   
+
+    public static async updateCalendar(req: Request, res: Response) {
+        const calendarId = parseInt(req.params.id, 10);
+        if (!calendarId) {
+            throw new BadRequestError('Calendar ID is required');
+        }
+
+        if(!(req.user?.id === calendarId)) {
+            throw new ForbiddenError('You are not allowed to update this calendar.');
+        }
+        const calendarDto = req.body;
+        const updatedCalendar = await CalendarController.calendarService.updateCalendar(calendarId, calendarDto);
+        return res.status(StatusCodes.OK).json(updatedCalendar);
+    }
+
+    public static async deleteCalendar(req: Request, res: Response) {
+        const calendarId = parseInt(req.params.id, 10);
+
+        if (!calendarId) {
+            throw new BadRequestError('Calendar ID is required');
+        }
+
+        const calendar = await CalendarController.calendarService.getCalendarById(calendarId);
+        if(!(req.user?.id === calendar.owner.id)) {
+            throw new ForbiddenError('You are not allowed to delete this calendar.');
+        }
+
+        await CalendarController.calendarService.deleteCalendar(calendarId);
+        return res.status(StatusCodes.NO_CONTENT).json();
+    }
+
+    public static async checkVisitor(req: Request, res: Response) {
+        const calendarId = parseInt(req.params.id, 10);
+        const visitorId = parseInt(req.body.visitorId, 10);
+        if (!calendarId || !visitorId) {
+            throw new BadRequestError('Calendar ID and visitor ID are required');
+        }
+        const calendar = await CalendarController.calendarService.checkVisitor(calendarId, visitorId);
+        return res.status(StatusCodes.OK).json(calendar);
+    
+    }
+
+    public static async addVisitorToCalendar(req: Request, res: Response) {
+        const calendarId = parseInt(req.params.id, 10);
+        const visitorId = parseInt(req.body.visitorId, 10);
+        if (!calendarId || !visitorId) {
+            throw new BadRequestError('Calendar ID and visitor ID are required');
+        }
+        const calendar = await CalendarController.calendarService.addVisitorToCalendar(calendarId, visitorId);
+        return res.status(StatusCodes.OK).json(calendar);
+    }
+
+    public static async removeVisitorFromCalendar(req: Request, res: Response) {
+        const calendarId = parseInt(req.params.id, 10);
+        const visitorId = parseInt(req.body.visitorId, 10);
+        if (!calendarId || !visitorId) {
+            throw new BadRequestError('Calendar ID and visitor ID are required');
+        }
+        const calendar = await CalendarController.calendarService.removeVisitorFromCalendar(calendarId, visitorId);
+        return res.status(StatusCodes.OK).json(calendar);
+    }
 }

@@ -16,6 +16,7 @@ export const enum ServiceMethod {
 
 export class CalendarService {
     private calendarRepository: Repository<Calendar>;
+    private eventRepository: Repository<Event> = AppDataSource.getRepository(Event);
     private userService: UserService = new UserService();
 
     constructor() {
@@ -65,7 +66,7 @@ export class CalendarService {
     public async getCalendarById(id: number): Promise<Calendar> {
         const calendar = await this.calendarRepository.findOne({
         where: { id },
-            relations: ['Owner', 'visitors', 'events'], // Load related entities if needed
+            relations: ['visitors', 'events'], // Load related entities if needed
         });
         if (!calendar) {
             throw new NotFoundError('Calendar not found');
@@ -86,6 +87,12 @@ export class CalendarService {
     public async deleteCalendar(id: number): Promise<boolean> {
         try {
             const calendar = await this.getCalendarById(id);
+            await this.calendarRepository
+                .createQueryBuilder()
+                .relation(Calendar, "visitors")
+                .of(calendar)
+                .remove(calendar.visitors);
+            await this.eventRepository.delete({ calendar: { id: id } });
             await this.calendarRepository.remove(calendar);
             return true;
         } catch (error) {
@@ -142,14 +149,33 @@ export class CalendarService {
 
     public async shareCalendar(calendarId: number, visitorsIds: number[]): Promise<Calendar> {
         const calendar = await this.getCalendarById(calendarId);
-        const visitors = await AppDataSource.getRepository(User).findBy({id: In(visitorsIds || [])});
-
-        if (!visitors) {
-            throw new NotFoundError('Visitor not found');
+        const visitors = await AppDataSource.getRepository(User).findBy({ id: In(visitorsIds || []) });
+        
+        if (visitors.length > 0) {
+            for (const visitor of visitors) {
+                if (visitor.id === calendar.owner.id) {
+                    throw new BadRequestError('Owner cannot be a visitor');
+                }
+                if (!calendar.visitors?.includes(visitor)) {
+                    calendar.visitors?.push(visitor);
+                }
+            }
+            return this.calendarRepository.save(calendar);
         }
+    
+        throw new NotFoundError('No visitors found');
+    }
 
-        calendar.visitors = visitors;
-        return this.calendarRepository.save(calendar);
+    public async checkVisitor(calendarId: number, visitorId: number) : Promise<boolean>
+    {
+        const calendar = await this.getCalendarById(calendarId);
+        const visitor = await AppDataSource.getRepository(User).findOneBy({id: visitorId});
+        if(visitor)
+        {
+            return calendar.visitors? calendar.visitors.includes(visitor) : false;
+        }
+        return false;
+
     }
 }
 

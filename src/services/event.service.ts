@@ -86,7 +86,7 @@ export class EventService {
     queryOptions: QueryOptions,
   ): Promise<{ items: Event[]; total: number }> {
     queryOptions.searchType = 'event';
-    queryOptions.sortField = queryOptions.sortField || 'createdAt'; // Default to sorting by createdAt
+    queryOptions.sortField = queryOptions.sortField || 'createdAt';
     const queryBuilder = this.eventRepository.createQueryBuilder('event');
     const paginator = new Paginator<Event>(queryOptions);
     return await paginator.paginate(queryBuilder);
