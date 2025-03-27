@@ -56,8 +56,8 @@ const passwordResetTemplate = (resetLink: string): string => `
         <td align="center">
           <div class="container">
             <h1>Password Reset</h1>
-            <p>To reset your password please click the button below:</p>
-            <img src="https://media.giphy.com/media/R7m04yMaGWVeE/giphy.gif" width="480" height="360" style="max-width: 100%; border-radius: 10px;" alt="Password Reset GIF" />
+            <p>To reset your password please click the button below:</p>\
+            <img src="https://i.gifer.com/4Fxv.gif" width="480" height="360" style="max-width: 100%; border-radius: 10px;" alt="Password Reset GIF" />
             <a href="${resetLink}" class="button">Reset Password</a>
           </div>
         </td>

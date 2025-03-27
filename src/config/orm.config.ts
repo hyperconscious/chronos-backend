@@ -12,6 +12,6 @@ export const AppDataSource = new DataSource({
   entities: ['src/entities/*.ts'],
   // subscribers: [__dirname + '/../subscribers/*.ts'], // just freezing when updating post
   migrations: ['src/migrations/*.ts'],
-  synchronize: false,
+  synchronize: true,
   logging: false,
 });

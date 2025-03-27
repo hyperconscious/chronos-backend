@@ -16,7 +16,6 @@ import { EventService } from '../services/event.service';
 import { EventRecurrence, EventType } from '../entities/event.entity';
 
 const isoCountries = require("i18n-iso-countries");
-
 export class AuthController {
   private static userService = new UserService();
   private static jwtService = new JWTService();
@@ -31,17 +30,17 @@ export class AuthController {
       full_name,
       passwordConfirmation,
       email,
-      countryCode
+      countryCode,
     } = req.body;
-    console.log(req.body);
+
     if (password !== passwordConfirmation) {
       throw new BadRequestError('Password confirmation does not match.');
     }
-    if(!isoCountries.isValid(countryCode)) {
+
+    if (!isoCountries.isValid(countryCode)) {
       throw new BadRequestError('Invalid country code.');
     }
     const holidays = await getHolidays(countryCode);
-    
     const user = await AuthController.userService.createUser({
       login,
       password,
@@ -51,12 +50,10 @@ export class AuthController {
     const accessToken = AuthController.jwtService.generateAccessToken(user);
     const refreshToken = AuthController.jwtService.generateRefreshToken(user);
 
-    
     const calendar = await AuthController.calendarService.createCalendar({
       title: 'My Calendar',
     }, user.id);
 
-    
     for (const holiday of holidays) {
       let startDate = new Date(holiday.date);
       let endDate = new Date(holiday.date);
@@ -66,8 +63,8 @@ export class AuthController {
 
       let now = new Date();
       if (startDate < now) {
-          startDate.setFullYear(startDate.getFullYear() + 1);
-          endDate.setFullYear(endDate.getFullYear() + 1);
+        startDate.setFullYear(startDate.getFullYear() + 1);
+        endDate.setFullYear(endDate.getFullYear() + 1);
       }
 
       await AuthController.eventService.createEvent({
@@ -79,12 +76,12 @@ export class AuthController {
         type: EventType.Reminder
       }, user.id, calendar.id);
     }
-    // const mailToken = AuthController.jwtService.generateEmailToken(user);
-    
-    // await AuthController.mailService.sendVerificationEmail(
-    //   user.email,
-    //   mailToken,
-    // );
+    const mailToken = AuthController.jwtService.generateEmailToken(user);
+    await AuthController.mailService.sendVerificationEmail(
+      user.email,
+      mailToken,
+      req.headers['x-callback-url'] as string,
+    );
 
     return res.status(StatusCodes.CREATED).json({ accessToken, refreshToken });
   }

@@ -7,18 +7,10 @@ import {
 } from '../utils/http-errors';
 import { StatusCodes } from 'http-status-codes';
 import { queryOptionsDto, QueryOptions } from '../dto/query-options.dto';
-import { JWTService } from '../services/jwt.service';
-import { MailService } from '../services/mail.service';
 import { createUserDto } from '../dto/user.dto';
-import { CalendarService } from '../services/calendar.service';
-import axios from 'axios';
-
 
 export class UserController {
-  private static jwtService = new JWTService();
-  private static mailService = new MailService();
   private static userService = new UserService();
-  private static calendarService = new CalendarService();
 
   private static validateQueryDto(req: Request): QueryOptions {
     const { error, value: queryOptions } = queryOptionsDto.validate(req.query, {
@@ -58,7 +50,7 @@ export class UserController {
       throw new BadRequestError('Password confirmation does not match.');
     }
 
-   
+
     let verified = false;
 
     const newUser = await UserController.userService.createUser({
@@ -66,20 +58,19 @@ export class UserController {
       verified,
     });
 
-    
+
 
     return res.status(StatusCodes.CREATED).json({ data: newUser });
   }
 
-  
+
 
   public static async updateUser(req: Request, res: Response) {
     const callbackUrl = req.headers['x-callback-url'];
     const userData = req.body;
     const userId = req.user!.id;
 
-    if (userId !== parseInt(req.params.user_id, 10)) 
-    {
+    if (userId !== parseInt(req.params.user_id, 10)) {
       throw new ForbiddenError('You are not authorized to update this user.');
     }
     if (userData.login) {
