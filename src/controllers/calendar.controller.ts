@@ -21,9 +21,9 @@ export class CalendarController {
             abortEarly: false,
         });
         if (error) {
-        throw new BadRequestError(
-            error.details.map((detail) => detail.message).join('; '),
-        );
+            throw new BadRequestError(
+                error.details.map((detail) => detail.message).join('; '),
+            );
         }
         return queryOptions;
     }
@@ -59,8 +59,7 @@ export class CalendarController {
         }
         const UserInCalendar = await CalendarController.calendarService.checkUser(calendar_id, req.user.id);
 
-        if(!UserInCalendar)
-        {
+        if (!UserInCalendar) {
             throw new ForbiddenError('You are not allowed to see events in this calendar.');
         }
         queryOptions.filters = { calendar_id: calendar_id };
@@ -79,8 +78,7 @@ export class CalendarController {
 
         const UserInCalendar = await CalendarController.calendarService.checkUser(calendarId, req.user.id);
 
-        if(!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin && UserInCalendar.role !== UserRole.editor))
-        {
+        if (!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin && UserInCalendar.role !== UserRole.editor)) {
             throw new ForbiddenError('You are not allowed to create events in this calendar.');
         }
 
@@ -98,7 +96,7 @@ export class CalendarController {
         const calendarId = parseInt(req.params.id, 10);
         const UserInCalendar = await CalendarController.calendarService.checkUser(calendarId, req.user.id);
 
-        if(!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin)) {
+        if (!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin)) {
             throw new ForbiddenError('You are not allowed to share this calendar.');
         }
 
@@ -112,7 +110,7 @@ export class CalendarController {
     }
 
     public static async getCalendarById(req: Request, res: Response) {
-        if(!req.user){
+        if (!req.user) {
             throw new UnauthorizedError('You need to be logged in.');
         }
         const calendarId = parseInt(req.params.id, 10);
@@ -120,7 +118,7 @@ export class CalendarController {
             throw new BadRequestError('Calendar ID is required');
         }
         const UserInCalendar = await CalendarController.calendarService.checkUser(calendarId, req.user.id);
-        if(!UserInCalendar){
+        if (!UserInCalendar) {
             throw new ForbiddenError('You are not allowed to see this calendar.');
         }
         const calendar = await CalendarController.calendarService.getCalendarById(calendarId);
@@ -128,7 +126,7 @@ export class CalendarController {
     }
 
     public static async updateCalendar(req: Request, res: Response) {
-        if(!req.user){
+        if (!req.user) {
             throw new UnauthorizedError('You need to be logged in.');
         }
         const calendarId = parseInt(req.params.id, 10);
@@ -137,7 +135,7 @@ export class CalendarController {
         }
 
         const UserInCalendar = await CalendarController.calendarService.checkUser(calendarId, req.user.id);
-        if(!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin)){
+        if (!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin)) {
             throw new ForbiddenError('You are not allowed to update this calendar.');
         }
         const calendarDto = req.body;
@@ -156,7 +154,7 @@ export class CalendarController {
         }
 
         const UserInCalendar = await CalendarController.calendarService.checkUser(calendarId, req.user.id);
-        if(!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin)){
+        if (!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin)) {
             throw new ForbiddenError('You are not allowed to delete this calendar.');
         }
 

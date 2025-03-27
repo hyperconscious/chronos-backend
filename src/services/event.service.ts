@@ -42,9 +42,9 @@ export class EventService {
     if (!calendar) {
       throw new NotFoundError('Calendar not found');
     }
-    if(eventData.startTime === undefined)
+    if (eventData.startTime === undefined)
       throw new BadRequestError('Event start time is required');
-    if(eventData.endTime === undefined)
+    if (eventData.endTime === undefined)
       throw new BadRequestError('Event end time is required');
 
     eventData.startTime = new Date(eventData.startTime.toISOString());
@@ -54,7 +54,7 @@ export class EventService {
       ...eventData,
       creator: user,
       calendar: calendar,
-      
+
     });
 
     return this.eventRepository.save(newEvent);
@@ -63,7 +63,7 @@ export class EventService {
   public async createEventForCalendars(eventData: Partial<Event>, creator_id: number, calendars: Calendar[]): Promise<Event[]> {
     let events: Event[] = [];
     for (const calendar of calendars) {
-        events.push(await this.createEvent(eventData, creator_id, calendar.id));
+      events.push(await this.createEvent(eventData, creator_id, calendar.id));
     }
     return events;
   }
@@ -78,8 +78,7 @@ export class EventService {
     return events;
   }
 
-  public async updateEventTimeRange(event: Event, newStart: Date, newEnd: Date)
-  {
+  public async updateEventTimeRange(event: Event, newStart: Date, newEnd: Date) {
     event.startTime = newStart;
     event.endTime = newEnd;
     return this.eventRepository.save(event);

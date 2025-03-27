@@ -5,7 +5,7 @@ export class Paginator<T> {
   constructor(paginationOptions: QueryOptions) {
     this.queryOptions = {
       page: paginationOptions.page || 1,
-      limit: paginationOptions.limit || 10,
+      limit: paginationOptions.limit,
       sortField: paginationOptions.sortField || 'id',
       sortDirection: paginationOptions.sortDirection || 'ASC',
       filters: paginationOptions.filters || {},
@@ -64,6 +64,7 @@ export class Paginator<T> {
       this.queryOptions.sortDirection,
     );
 
+
     if (this.queryOptions.limit > 0) {
       queryBuilder
         .limit(this.queryOptions.limit)
@@ -71,7 +72,6 @@ export class Paginator<T> {
     }
 
     const items = await queryBuilder.getMany();
-
     return { items, total: total };
   }
 }
