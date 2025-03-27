@@ -26,14 +26,11 @@ export class EventController {
         return queryOptions;
     }
 
-    public static async getAllEvents(req: Request, res: Response) {
-        const queryOptions = EventController.validateQueryDto(req);
-
+    public static async getMyEvents(req: Request, res: Response) {
         if (!req.user) {
             throw new UnauthorizedError('You need to be logged in.');
         }
-
-        const events = await EventController.eventService.getAllEvents(queryOptions);
+        const events = await EventController.eventService.getAllEventsOfUser(req.user.id);
         return res.status(StatusCodes.OK).json(events);
     }
 
@@ -127,7 +124,7 @@ export class EventController {
         return res.status(StatusCodes.OK).json(events);
     }
 
-    public static async getUserEvents(req: Request, res: Response) {
+    public static async getCreatedByUserEvents(req: Request, res: Response) {
         if (!req.user) {
             throw new UnauthorizedError('You need to be logged in.');
         }

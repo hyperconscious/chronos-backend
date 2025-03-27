@@ -6,6 +6,7 @@ import { createEventDto, updateEventDto } from '../dto/event.dto';
 import { Paginator, QueryOptions } from '../utils/paginator';
 import { User } from '../entities/user.entity';
 import { Calendar } from '../entities/calendar.entity';
+import { UserInCalendar } from '../entities/userInCalendar.entity';
 
 export const enum ServiceMethod {
   create,
@@ -126,6 +127,25 @@ export class EventService {
     const queryBuilder = this.eventRepository.createQueryBuilder('event');
     const paginator = new Paginator<Event>(queryOptions);
     return await paginator.paginate(queryBuilder);
+  }
+
+  public async getAllEventsOfUser(
+    userId: number,
+  ): Promise<Event[]> {
+    const userInCalendar = await AppDataSource.getRepository(UserInCalendar).find({
+      where: { user: { id: userId } },
+      relations: ['calendar'],
+    });
+    let events: Event[] = [];
+    for (const user of userInCalendar) {
+      const calendar = user.calendar;
+      events = events.concat(await this.eventRepository.find({
+        where: { calendar: { id: calendar.id } },
+        relations: ['creator'],
+      }));
+    }
+
+    return events
   }
 
   public async deleteEvent(id: number): Promise<boolean> {
