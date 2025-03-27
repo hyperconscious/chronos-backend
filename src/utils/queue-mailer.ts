@@ -4,64 +4,72 @@ import { EventService } from '../services/event.service';
 import config from '../config/env.config';
 import { EventRecurrence } from '../entities/event.entity';
 import { CalendarService } from '../services/calendar.service';
+import { MailService } from '../services/mail.service';
+import { NotificationService } from '../services/notification.service';
 
 const eventService = new EventService();
 const calendarService = new CalendarService();
+const notificationService = new NotificationService();
 
-const transporter = nodemailer.createTransport({
-    host: config.mail.host,
-    port: 465,
-    secure: true,
-    auth: {
-        user: config.mail.user,
-        pass: config.mail.pass,
-    },
-    tls: {
-        rejectUnauthorized: false,
-    },
-});
-
-async function sendEmail(to: string, subject: string, message: string) {
-    await transporter.sendMail({
-        from: '"Chronos"',
-        to,
-        subject,
-        text: message,
-    });
-}
-
-
-export function startCron()
-{
-    console.log('Starting mailer cron job');
-    cron.schedule('* * * * *', async () => {
-        const now = new Date();
-        const startingEvents = await eventService.getEventsStartingAt(now);
-        for (const event of startingEvents) {
-            const owner = await calendarService.getCalendarOwner(event.calendar.id);
-            try {
-                await sendEmail(owner.user.email, `Event started: ${event.title}`, `Event "${event.title}" Starts right now. \n ${event.description}`);
-                console.log(await eventService.markEventAsNotified(event));
-            } catch (error) {
-                console.log(error);
-            }
+async function scheduleMailSending() {
+    console.log('mailer cron job running');
+    const now = new Date();
+    const startingEvents = await eventService.getEventsStartingAt(now);
+    for (const event of startingEvents) {
+        const owner = await calendarService.getCalendarOwner(event.calendar.id);
+        try {
+            await notificationService.createNotification({
+                title: `Event started: ${event.title}`,
+                message: `Event "${event.title}" starts right now. \n ${event.description}`,
+                user: owner.user,
+                relatedEvent: event,
+            }, true);
+            console.log(await eventService.markEventAsNotified(event));
+        } catch (error) {
+            console.log(error);
         }
-        const endingEvents = await eventService.getEventsEndingAt(now);
-        for (const event of endingEvents) {
+    }
+    const endingEvents = await eventService.getEventsEndingAt(now);
+    console.log('Found events:', endingEvents.length);
+    for (const event of endingEvents) {
+        try
+        {
+            console.log('endingEvents', event);
             const owner = await calendarService.getCalendarOwner(event.calendar.id);
-            if (event.recurrence === EventRecurrence.None)
+            if (event.recurrence == EventRecurrence.None)
             {
-                await sendEmail(owner.user.email, `Event ended: ${event.title}`, `Event "${event.title}" Ends right now.`);
-                await eventService.markEventAsCompleted(event);
+                console.log('Event has no recurrence');
+                await notificationService.createNotification({
+                    title: `Event ended: ${event.title}`,
+                    message: `Event "${event.title}" Ends right now.`,
+                    user: owner.user,
+                    relatedEvent: event,
+                }, true);
+                console.log(await eventService.markEventAsCompleted(event));
             } else {
                 const newStart = getNextOccurrence(event.startTime, event.recurrence);
                 if(event.endTime !== undefined){
                     const newEnd = getNextOccurrence(event.endTime, event.recurrence);
                     await eventService.updateEventTimeRange(event, newStart, newEnd);
                 }
-                await sendEmail(owner.user.email, `Event ended: ${event.title}`, `Event "${event.title}" again ${event.recurrence}.`);
+                await notificationService.createNotification({
+                    title: `Event ended: ${event.title}`,
+                    message: `Event "${event.title}" you see this event again in ${event.recurrence}.`,
+                    user: owner.user,
+                    relatedEvent: event,
+                }, true);
             }
+        } catch (error) {
+            console.log(error);
         }
+    }
+}
+
+export function startCron()
+{
+    console.log('Starting mailer cron job');
+    cron.schedule('* * * * *', async () => {
+        await scheduleMailSending();
     });
 
 }

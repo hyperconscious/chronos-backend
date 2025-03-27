@@ -16,7 +16,7 @@ export const createNotificationDto = Joi.object({
 
   type: Joi.string()
     .valid(...Object.values(NotificationType))
-    .required()
+    .optional()
     .messages({
       'any.only': `Type must be one of: ${Object.values(NotificationType).join(', ')}.`,
       'any.required': 'Type is required.'
@@ -24,18 +24,9 @@ export const createNotificationDto = Joi.object({
 
   isRead: Joi.boolean().default(false),
 
-  user: Joi.number().integer().positive().required().messages({
-    'number.base': 'User ID must be a number.',
-    'number.integer': 'User ID must be an integer.',
-    'number.positive': 'User ID must be a positive number.',
-    'any.required': 'User ID is required.'
-  }),
+  user: Joi.object(),
 
-  relatedEvent: Joi.number().integer().positive().allow(null).messages({
-    'number.base': 'Event ID must be a number.',
-    'number.integer': 'Event ID must be an integer.',
-    'number.positive': 'Event ID must be a positive number.'
-  })
+  relatedEvent: Joi.object().optional(),
 });
 
 export const updateNotificationDto = Joi.object({
@@ -57,15 +48,6 @@ export const updateNotificationDto = Joi.object({
 
   isRead: Joi.boolean(),
 
-  user: Joi.number().integer().positive().messages({
-    'number.base': 'User ID must be a number.',
-    'number.integer': 'User ID must be an integer.',
-    'number.positive': 'User ID must be a positive number.'
-  }),
-
-  relatedEvent: Joi.number().integer().positive().allow(null).messages({
-    'number.base': 'Event ID must be a number.',
-    'number.integer': 'Event ID must be an integer.',
-    'number.positive': 'Event ID must be a positive number.'
-  })
+  user: Joi.object(),
+  relatedEvent: Joi.object().optional(),
 }).min(1);

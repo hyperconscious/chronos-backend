@@ -16,7 +16,7 @@ export enum NotificationType {
     EventReminder = 'event_reminder',
     EventChange = 'event_change',
     EventCancellation = 'event_cancellation',
-    EventInvitation = 'event_invitation',
+    Invitation = 'event_invitation',
 }
 
 @Entity()
@@ -33,7 +33,8 @@ export class Notification {
 
     @Column({
     type: 'enum',
-    enum: NotificationType
+    enum: NotificationType,
+    default: NotificationType.EventReminder
     })
     type!: NotificationType;
 

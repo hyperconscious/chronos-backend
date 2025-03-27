@@ -42,11 +42,19 @@ export class EventService {
     if (!calendar) {
       throw new NotFoundError('Calendar not found');
     }
+    if(eventData.startTime === undefined)
+      throw new BadRequestError('Event start time is required');
+    if(eventData.endTime === undefined)
+      throw new BadRequestError('Event end time is required');
+
+    eventData.startTime = new Date(eventData.startTime.toISOString());
+    eventData.endTime = new Date(eventData.endTime.toISOString());
 
     const newEvent = this.eventRepository.create({
       ...eventData,
       creator: user,
       calendar: calendar,
+      
     });
 
     return this.eventRepository.save(newEvent);

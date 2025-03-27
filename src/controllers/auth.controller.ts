@@ -55,13 +55,11 @@ export class AuthController {
     const calendar = await AuthController.calendarService.createCalendar({
       title: 'My Calendar',
     }, user.id);
-    console.log('Adding user to calendar');
     await AuthController.calendarService.addUserToCalendar(
       calendar.id,
       user.id,
       UserRole.owner
     );
-    console.log('Adding holidays to calendar');
     for (const holiday of holidays) {
       let startDate = new Date(holiday.date);
       let endDate = new Date(holiday.date);
