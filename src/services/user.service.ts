@@ -141,7 +141,6 @@ export class UserService {
   public async deleteUser(id: number): Promise<boolean> {
     const user = await this.getUserById(id);
     try {
-      
       await this.userRepository.remove(user);
       return true;
     } catch (error) {

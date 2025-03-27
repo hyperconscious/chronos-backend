@@ -87,4 +87,7 @@ export class Event {
     @Column({ default: false })
     isNotifiedEnd!: boolean;
 
+    @Column({ default: '#007bff' })
+    color!: string;
+
 }

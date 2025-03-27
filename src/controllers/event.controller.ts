@@ -98,7 +98,6 @@ export class EventController {
         const calendarId = parseInt(req.params.calendarId, 10);
         const eventDto = await createEventDto.validateAsync(req.body);
 
-        const calendar = await EventController.calendarService.getCalendarById(calendarId);
         const UserInCalendar = await EventController.calendarService.checkUser(calendarId, req.user.id);
 
         if(!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin && UserInCalendar.role !== UserRole.editor))

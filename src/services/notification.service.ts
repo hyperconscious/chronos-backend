@@ -5,6 +5,8 @@ import { AppDataSource } from '../config/orm.config';
 import { createNotificationDto, updateNotificationDto } from '../dto/notification.dto';
 import { Paginator, QueryOptions } from '../utils/paginator';
 import { MailService } from './mail.service';
+import { User } from '../entities/user.entity';
+import { Event } from '../entities/event.entity';
 
 export const enum ServiceMethod {
   create,
@@ -30,19 +32,57 @@ export class NotificationService {
     }
   }
 
-  public async createNotification(notificationData: Partial<Notification>, sendMail: boolean = false): Promise<Notification> {
+  public async createNotification(
+    notificationData: Partial<Notification>,
+    sendMail: boolean = false
+  ): Promise<Notification> {
     this.validateNotificationDTO(notificationData, ServiceMethod.create);
 
-    const newNotification = this.notificationRepository.create(notificationData);
+    const { user, relatedEvent, ...rest } = notificationData;
 
-    if (sendMail) {
+    if (!user || typeof user !== 'object' || !user.id) {
+      throw new BadRequestError('User is required for notification.');
+    }
+
+    const userEntity = await AppDataSource.getRepository(User).findOne({
+      where: { id: user.id },
+      relations: ['notifications'],
+    });
+
+    if (!userEntity) {
+      throw new NotFoundError('User not found');
+    }
+
+    let eventEntity: Event | undefined = undefined;
+    if (relatedEvent && relatedEvent.id) {
+      const event = await AppDataSource.getRepository(Event).findOne({
+      where: { id: relatedEvent.id },});
+      if (!event) {
+        throw new NotFoundError('Related event not found');
+      }
+      eventEntity = event;
+      if (!eventEntity) {
+        throw new NotFoundError('Related event not found');
+      }
+    }
+
+    const newNotification = this.notificationRepository.create({
+      ...rest,
+      user: userEntity,
+      relatedEvent: eventEntity,
+    });
+
+    const savedNotification = await this.notificationRepository.save(newNotification);
+
+    if (sendMail && userEntity.email) {
       try {
-        await this.mailService.sendEmail(newNotification.user.email, newNotification.title, newNotification.message);
+        await this.mailService.sendEmail(userEntity.email, savedNotification.title, savedNotification.message);
       } catch (error) {
         console.error('Error sending email:', error);
       }
     }
-    return this.notificationRepository.save(newNotification);
+
+    return savedNotification;
   }
 
   public async updateNotification(id: number, notificationData: Partial<Notification>): Promise<Notification> {
@@ -56,7 +96,10 @@ export class NotificationService {
   }
 
   public async getNotificationById(id: number): Promise<Notification> {
-    const notification = await this.notificationRepository.findOneBy({ id });
+    const notification = await this.notificationRepository.findOne({
+      where: { id },
+      relations: ['user', 'relatedEvent'],
+    });
 
     if (!notification) {
       throw new NotFoundError('Notification not found');
@@ -69,8 +112,11 @@ export class NotificationService {
     queryOptions: QueryOptions,
   ): Promise<{ items: Notification[]; total: number }> {
     queryOptions.searchType = 'notification';
-    queryOptions.sortField = queryOptions.sortField || 'createdAt'; // Default to sorting by createdAt
-    const queryBuilder = this.notificationRepository.createQueryBuilder('notification');
+    queryOptions.sortField = queryOptions.sortField || 'createdAt';
+    const queryBuilder = this.notificationRepository.createQueryBuilder('notification')
+      .leftJoinAndSelect('notification.user', 'user')
+      .leftJoinAndSelect('notification.relatedEvent', 'event');
+
     const paginator = new Paginator<Notification>(queryOptions);
     return await paginator.paginate(queryBuilder);
   }

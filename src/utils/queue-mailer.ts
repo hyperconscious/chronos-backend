@@ -12,29 +12,26 @@ const calendarService = new CalendarService();
 const notificationService = new NotificationService();
 
 async function scheduleMailSending() {
-    console.log('mailer cron job running');
     const now = new Date();
     const startingEvents = await eventService.getEventsStartingAt(now);
     for (const event of startingEvents) {
-        const owner = await calendarService.getCalendarOwner(event.calendar.id);
         try {
+            const owner = await calendarService.getCalendarOwner(event.calendar.id);
             await notificationService.createNotification({
                 title: `Event started: ${event.title}`,
                 message: `Event "${event.title}" starts right now. \n ${event.description}`,
                 user: owner.user,
                 relatedEvent: event,
             }, true);
-            console.log(await eventService.markEventAsNotified(event));
+            await eventService.markEventAsNotified(event);
         } catch (error) {
             console.log(error);
         }
     }
     const endingEvents = await eventService.getEventsEndingAt(now);
-    console.log('Found events:', endingEvents.length);
     for (const event of endingEvents) {
         try
         {
-            console.log('endingEvents', event);
             const owner = await calendarService.getCalendarOwner(event.calendar.id);
             if (event.recurrence == EventRecurrence.None)
             {
@@ -45,7 +42,7 @@ async function scheduleMailSending() {
                     user: owner.user,
                     relatedEvent: event,
                 }, true);
-                console.log(await eventService.markEventAsCompleted(event));
+                await eventService.markEventAsCompleted(event);
             } else {
                 const newStart = getNextOccurrence(event.startTime, event.recurrence);
                 if(event.endTime !== undefined){
