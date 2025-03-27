@@ -8,9 +8,11 @@ import {
 import { StatusCodes } from 'http-status-codes';
 import { queryOptionsDto, QueryOptions } from '../dto/query-options.dto';
 import { createUserDto } from '../dto/user.dto';
+import { CalendarService } from '../services/calendar.service';
 
 export class UserController {
   private static userService = new UserService();
+  private static calendarService = new CalendarService();
 
   private static validateQueryDto(req: Request): QueryOptions {
     const { error, value: queryOptions } = queryOptionsDto.validate(req.query, {
