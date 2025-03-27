@@ -11,12 +11,13 @@ import {
     Unique,
     UpdateDateColumn,
   } from 'typeorm';
-  
+
   import { User } from './user.entity';
   import { Event } from './event.entity';
 import { Tag } from './tag.entity';
 import { on } from 'events';
-  
+import { UserInCalendar as UserInCalendar } from './userInCalendar.entity';
+
 @Entity()
 @Unique(['id'])
 export class Calendar {
@@ -25,28 +26,23 @@ export class Calendar {
 
       @Column()
       title!: string;
-      
+
       @Column({ nullable: true })
       description?: string;
 
-      @ManyToOne(() => User, { eager: true })
-      @JoinColumn({ name: 'user_id' })
-      owner!: User;
+      @OneToMany(() => UserInCalendar, user => user.id)
+      users?: UserInCalendar[];
 
-      @ManyToMany(() => User, (user) => user.sharedCalendars, { cascade: true })
-      @JoinTable()
-      visitors?: User[];
-      
       @OneToMany(() => Event, event => event.calendar, { cascade: true, onDelete: "CASCADE" })
       events?: Event[];
 
       @OneToMany(() => Tag, tag => tag.calendar, { cascade: true, onDelete: "CASCADE" })
       tags?: Tag[];
 
-      
+
       @CreateDateColumn()
       createdAt!: Date;
-      
+
       @UpdateDateColumn()
       updatedAt!: Date;
 }

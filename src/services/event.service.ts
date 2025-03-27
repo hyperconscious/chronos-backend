@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, Repository } from 'typeorm';
 import { BadRequestError, NotFoundError } from '../utils/http-errors';
 import { Event } from '../entities/event.entity';
 import { AppDataSource } from '../config/orm.config';
@@ -6,6 +6,7 @@ import { createEventDto, updateEventDto } from '../dto/event.dto';
 import { Paginator, QueryOptions } from '../utils/paginator';
 import { User } from '../entities/user.entity';
 import { Calendar } from '../entities/calendar.entity';
+import { UserInCalendar } from '../entities/userInCalendar.entity';
 
 export const enum ServiceMethod {
   create,
@@ -41,11 +42,19 @@ export class EventService {
     if (!calendar) {
       throw new NotFoundError('Calendar not found');
     }
+    if(eventData.startTime === undefined)
+      throw new BadRequestError('Event start time is required');
+    if(eventData.endTime === undefined)
+      throw new BadRequestError('Event end time is required');
+
+    eventData.startTime = new Date(eventData.startTime.toISOString());
+    eventData.endTime = new Date(eventData.endTime.toISOString());
 
     const newEvent = this.eventRepository.create({
       ...eventData,
       creator: user,
       calendar: calendar,
+      
     });
 
     return this.eventRepository.save(newEvent);
@@ -57,6 +66,42 @@ export class EventService {
         events.push(await this.createEvent(eventData, creator_id, calendar.id));
     }
     return events;
+  }
+
+  public async getEventsStartingAt(date: Date): Promise<Event[]> {
+    const events = await this.eventRepository.find({
+      where: { startTime: LessThanOrEqual(date), isNotifiedStart: false },
+      relations: ['calendar'],
+
+    });
+
+    return events;
+  }
+
+  public async updateEventTimeRange(event: Event, newStart: Date, newEnd: Date)
+  {
+    event.startTime = newStart;
+    event.endTime = newEnd;
+    return this.eventRepository.save(event);
+  }
+
+  public async getEventsEndingAt(date: Date): Promise<Event[]> {
+    const events = await this.eventRepository.find({
+      where: { endTime: LessThanOrEqual(date), isNotifiedEnd: false },
+      relations: ['calendar'],
+    });
+
+    return events;
+  }
+
+  public async markEventAsNotified(event: Event): Promise<Event> {
+    event.isNotifiedStart = true;
+    return this.eventRepository.save(event);
+  }
+
+  public async markEventAsCompleted(event: Event): Promise<Event> {
+    event.isNotifiedEnd = true;
+    return this.eventRepository.save(event);
   }
 
   public async updateEvent(id: number, eventData: Partial<Event>): Promise<Event> {
@@ -90,6 +135,25 @@ export class EventService {
     const queryBuilder = this.eventRepository.createQueryBuilder('event');
     const paginator = new Paginator<Event>(queryOptions);
     return await paginator.paginate(queryBuilder);
+  }
+
+  public async getAllEventsOfUser(
+    userId: number,
+  ): Promise<Event[]> {
+    const userInCalendar = await AppDataSource.getRepository(UserInCalendar).find({
+      where: { user: { id: userId } },
+      relations: ['calendar'],
+    });
+    let events: Event[] = [];
+    for (const user of userInCalendar) {
+      const calendar = user.calendar;
+      events = events.concat(await this.eventRepository.find({
+        where: { calendar: { id: calendar.id } },
+        relations: ['creator'],
+      }));
+    }
+
+    return events
   }
 
   public async deleteEvent(id: number): Promise<boolean> {

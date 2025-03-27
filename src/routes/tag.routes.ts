@@ -9,7 +9,7 @@ tagRouter.get('/:id', auth, TagController.getTagById);
 
 tagRouter.post('/', auth, TagController.createTag);
 
-tagRouter.put('/:id', auth, TagController.updateTag);
+tagRouter.patch('/:id', auth, TagController.updateTag);
 
 tagRouter.delete('/:id', auth, TagController.deleteTag);
 

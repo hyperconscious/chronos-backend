@@ -14,6 +14,7 @@ import { CalendarService } from '../services/calendar.service';
 import { getHolidays } from '../utils/holidays';
 import { EventService } from '../services/event.service';
 import { EventRecurrence, EventType } from '../entities/event.entity';
+import { UserRole } from '../entities/userInCalendar.entity';
 
 const isoCountries = require("i18n-iso-countries");
 export class AuthController {
@@ -41,6 +42,7 @@ export class AuthController {
       throw new BadRequestError('Invalid country code.');
     }
     const holidays = await getHolidays(countryCode);
+
     const user = await AuthController.userService.createUser({
       login,
       password,
@@ -53,7 +55,11 @@ export class AuthController {
     const calendar = await AuthController.calendarService.createCalendar({
       title: 'My Calendar',
     }, user.id);
-
+    await AuthController.calendarService.addUserToCalendar(
+      calendar.id,
+      user.id,
+      UserRole.owner
+    );
     for (const holiday of holidays) {
       let startDate = new Date(holiday.date);
       let endDate = new Date(holiday.date);

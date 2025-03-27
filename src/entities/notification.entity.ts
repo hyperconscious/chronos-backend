@@ -16,7 +16,7 @@ export enum NotificationType {
     EventReminder = 'event_reminder',
     EventChange = 'event_change',
     EventCancellation = 'event_cancellation',
-    EventInvitation = 'event_invitation',
+    Invitation = 'event_invitation',
 }
 
 @Entity()
@@ -27,27 +27,28 @@ export class Notification {
 
     @Column()
     title!: string;
-    
+
     @Column({ type: 'text' })
     message!: string;
-    
+
     @Column({
     type: 'enum',
-    enum: NotificationType
+    enum: NotificationType,
+    default: NotificationType.EventReminder
     })
     type!: NotificationType;
-    
+
     @Column({ default: false })
     isRead!: boolean;
-    
+
     @ManyToOne(() => User)
     @JoinColumn()
     user!: User;
-    
+
     @ManyToOne(() => Event, { nullable: true })
     @JoinColumn()
     relatedEvent?: Event;
-    
+
     @CreateDateColumn()
     createdAt!: Date;
 }

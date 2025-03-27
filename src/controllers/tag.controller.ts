@@ -5,6 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 import { createTagDto, updateTagDto } from '../dto/tag.dto';
 import { queryOptionsDto, validateQueryDto } from '../dto/query-options.dto';
 import { CalendarService } from '../services/calendar.service';
+import { UserRole } from '../entities/userInCalendar.entity';
 
 export class TagController {
     private static tagService = new TagService();
@@ -24,7 +25,7 @@ export class TagController {
         }
 
         const tag = await TagController.tagService.getTagById(tagId);
-        
+
         if (!tag) {
             throw new NotFoundError('Tag not found');
         }
@@ -68,6 +69,10 @@ export class TagController {
     }
 
     public static async deleteTag(req: Request, res: Response) {
+        if (!req.user) {
+            throw new BadRequestError('You need to be logged in.');
+        }
+
         const tagId = parseInt(req.params.id, 10);
 
         if (!tagId) {
@@ -79,8 +84,13 @@ export class TagController {
         if (!tag) {
             throw new NotFoundError('Tag not found');
         }
+        const UserInCalendar = await TagController.calendarService.checkUser(tag.calendar.id, req.user.id);
 
-        if(!(req.user?.id === tag.calendar.owner.id)) {
+        if(!UserInCalendar || (
+            UserInCalendar.role !== UserRole.owner &&
+            UserInCalendar.role !== UserRole.admin &&
+            UserInCalendar.role !== UserRole.editor))
+        {
             throw new ForbiddenError('You are not allowed to delete this tag.');
         }
 

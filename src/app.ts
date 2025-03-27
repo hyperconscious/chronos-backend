@@ -2,7 +2,6 @@ import express from 'express';
 import 'reflect-metadata';
 import 'express-async-errors';
 import cors from 'cors';
-import helmet from 'helmet';
 import { startupLogger } from './utils/logger';
 import requestLogger from './middlewares/request-loger.middleware';
 import { router as apiRoutes } from './routes/index.routes';
@@ -11,6 +10,7 @@ import { errorMiddleware } from './middlewares/error-handle.middleware';
 import { BadRequestError, NotFoundError } from './utils/http-errors';
 import path from 'path';
 import setupSwagger from './config/swagger';
+import { startCron } from './utils/queue-mailer';
 
 var bodyParser = require('body-parser');
 
@@ -47,6 +47,7 @@ class ChronosServer {
   }
 
   public async start(port: number): Promise<void> {
+    startCron();
     try {
       await databaseService.connectWithRetries();
       this.app.listen(port, () => {

@@ -59,7 +59,6 @@ export class UserController {
     });
 
 
-
     return res.status(StatusCodes.CREATED).json({ data: newUser });
   }
 
@@ -122,15 +121,20 @@ export class UserController {
       .json({ message: 'Avatar uploaded successfully.', data: updatedUser });
   }
 
+
   public static async deleteUser(req: Request, res: Response) {
+    if (!req.user) {
+      throw new UnauthorizedError('You need to be logged in.');
+    }
     const userId = Number(req.params.user_id);
 
     if (
 
-      userId !== parseInt(req.params.user_id, 10)
+      userId !== req.user.id
     ) {
-      throw new ForbiddenError('You are not authorized to update this user.');
+      throw new ForbiddenError('You are not authorized to delete this user.');
     }
+    UserController.calendarService.deleteAllCalendarsOfUser(userId);
     await UserController.userService.deleteUser(userId);
     return res.status(StatusCodes.NO_CONTENT).json();
   }

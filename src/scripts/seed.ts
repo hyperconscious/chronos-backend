@@ -4,6 +4,7 @@ import { Calendar } from '../entities/calendar.entity';
 import { Event, EventType, EventRecurrence } from '../entities/event.entity';
 import { Tag } from '../entities/tag.entity';
 import { Notification, NotificationType } from '../entities/notification.entity';
+import { UserInCalendar, UserRole } from '../entities/userInCalendar.entity';
 import * as bcrypt from 'bcryptjs';
 import { AppDataSource } from '../config/orm.config';
 
@@ -17,14 +18,14 @@ export class DatabaseSeeder {
             await queryRunner.query('SET FOREIGN_KEY_CHECKS = 0');
 
             const tables = [
-                'notification', 
-                'event_tags_tag', 
-                'event', 
-                'tag', 
-                'calendar', 
+                'notification',
+                'event_tags_tag',
+                'user_in_calendar',
+                'event',
+                'tag',
+                'calendar',
                 'user'
             ];
-            
             for (const table of tables) {
                 await queryRunner.query(`TRUNCATE TABLE ${table}`);
             }
@@ -36,7 +37,9 @@ export class DatabaseSeeder {
             const tagRepository = dataSource.getRepository(Tag);
             const eventRepository = dataSource.getRepository(Event);
             const notificationRepository = dataSource.getRepository(Notification);
+            const userInCalendarRepository = dataSource.getRepository(UserInCalendar);
 
+            // Create Users
             const users = [
                 userRepository.create({
                     login: 'johndoe',
@@ -62,33 +65,47 @@ export class DatabaseSeeder {
                     verified: false
                 })
             ];
-            await userRepository.save(users);
+            const savedUsers = await userRepository.save(users);
+
+            // Create Calendars
             const calendars = [
                 calendarRepository.create({
                     title: 'John\'s Personal Calendar',
-                    description: 'Primary calendar for John Doe',
-                    owner: users[0]
+                    description: 'Primary calendar for John Doe'
                 }),
                 calendarRepository.create({
                     title: 'Jane\'s Work Calendar',
-                    description: 'Calendar for work-related events',
-                    owner: users[1]
+                    description: 'Calendar for work-related events'
                 })
             ];
             const savedCalendars = await calendarRepository.save(calendars);
 
-            await dataSource
-                .createQueryBuilder()
-                .relation(User, 'sharedCalendars')
-                .of(users[0])
-                .add(savedCalendars[1]);
-            
-            await dataSource
-                .createQueryBuilder()
-                .relation(User, 'sharedCalendars')
-                .of(users[1])
-                .add(savedCalendars[0]);
+            // Create UserInCalendar Associations
+            const userInCalendarEntries = [
+                userInCalendarRepository.create({
+                    user: savedUsers[0],
+                    calendar: savedCalendars[0],
+                    role: UserRole.owner
+                }),
+                userInCalendarRepository.create({
+                    user: savedUsers[1],
+                    calendar: savedCalendars[1],
+                    role: UserRole.owner
+                }),
+                userInCalendarRepository.create({
+                    user: savedUsers[1],
+                    calendar: savedCalendars[0],
+                    role: UserRole.editor
+                }),
+                userInCalendarRepository.create({
+                    user: savedUsers[0],
+                    calendar: savedCalendars[1],
+                    role: UserRole.visitor
+                })
+            ];
+            await userInCalendarRepository.save(userInCalendarEntries);
 
+            // Create Tags
             const tags = [
                 tagRepository.create({
                     name: 'Work',
@@ -109,41 +126,47 @@ export class DatabaseSeeder {
                     calendar: savedCalendars[0]
                 })
             ];
-            await tagRepository.save(tags);
+            const savedTags = await tagRepository.save(tags);
 
+            // Create Events
             const events = [
                 eventRepository.create({
                     title: 'Team Meeting',
                     description: 'Weekly team sync-up',
-                    startTime: new Date('2024-03-27T10:00:00'),
-                    endTime: new Date('2024-03-27T11:00:00'),
+                    startTime: new Date('2025-03-27T10:00:00'),
+                    endTime: new Date('2025-03-27T11:00:00'),
                     type: EventType.Arrangement,
                     recurrence: EventRecurrence.Weekly,
-                    creator: users[1],
+                    creator: savedUsers[1],
                     calendar: savedCalendars[1],
-                    tags: [tags[0]]
+                    tags: [savedTags[0]],
+                    isNotifiedStart: false,
+                    isNotifiedEnd: false
                 }),
                 eventRepository.create({
                     title: 'Dentist Appointment',
                     description: 'Regular dental checkup',
-                    startTime: new Date('2024-04-15T14:00:00'),
-                    endTime: new Date('2024-04-15T15:00:00'),
+                    startTime: new Date('2025-04-15T14:00:00'),
+                    endTime: new Date('2025-04-15T15:00:00'),
                     type: EventType.Arrangement,
                     recurrence: EventRecurrence.None,
-                    creator: users[0],
+                    creator: savedUsers[0],
                     calendar: savedCalendars[0],
-                    tags: [tags[1]]
+                    tags: [savedTags[1]],
+                    isNotifiedStart: false,
+                    isNotifiedEnd: false
                 })
             ];
-            await eventRepository.save(events);
+            const savedEvents = await eventRepository.save(events);
 
+            // Create Notifications
             const notifications = [
                 notificationRepository.create({
                     title: 'Team Meeting Reminder',
                     message: 'Your weekly team meeting starts in 1 hour',
                     type: NotificationType.EventReminder,
-                    user: users[1],
-                    relatedEvent: events[0],
+                    user: savedUsers[1],
+                    relatedEvent: savedEvents[0],
                     isRead: false
                 })
             ];
@@ -161,15 +184,12 @@ export class DatabaseSeeder {
     }
 }
 
-
 async function runSeed() {
     try {
         const dataSource = AppDataSource;
 
         await dataSource.initialize();
-        
         await DatabaseSeeder.seed(dataSource);
-        
         console.log('Seeding completed successfully');
 
         await dataSource.destroy();

@@ -4,6 +4,7 @@ import { Notification } from '../entities/notification.entity';
 import { AppDataSource } from '../config/orm.config';
 import { createNotificationDto, updateNotificationDto } from '../dto/notification.dto';
 import { Paginator, QueryOptions } from '../utils/paginator';
+import { MailService } from './mail.service';
 
 export const enum ServiceMethod {
   create,
@@ -12,6 +13,7 @@ export const enum ServiceMethod {
 
 export class NotificationService {
   private notificationRepository: Repository<Notification>;
+  private mailService: MailService = new MailService();
 
   constructor() {
     this.notificationRepository = AppDataSource.getRepository(Notification);
@@ -28,11 +30,18 @@ export class NotificationService {
     }
   }
 
-  public async createNotification(notificationData: Partial<Notification>): Promise<Notification> {
+  public async createNotification(notificationData: Partial<Notification>, sendMail: boolean = false): Promise<Notification> {
     this.validateNotificationDTO(notificationData, ServiceMethod.create);
 
     const newNotification = this.notificationRepository.create(notificationData);
 
+    if (sendMail) {
+      try {
+        await this.mailService.sendEmail(newNotification.user.email, newNotification.title, newNotification.message);
+      } catch (error) {
+        console.error('Error sending email:', error);
+      }
+    }
     return this.notificationRepository.save(newNotification);
   }
 

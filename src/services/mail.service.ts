@@ -4,6 +4,35 @@ import verificationTemplate from '../templates/verificationTemplate';
 import passwordResetTemplate from '../templates/passwordResetTemplate';
 
 export class MailService {
+  private transporter = nodemailer.createTransport({
+    host: config.mail.host,
+    port: 465,
+    secure: true,
+    auth: {
+      user: config.mail.user,
+      pass: config.mail.pass,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+
+  public async sendEmail(
+    email: string,
+    title: string,
+    message: string,
+  ) {
+
+    const mailOptions = {
+      from: '"Chronos"',
+      to: email,
+      subject: title,
+      text: message
+    };
+
+    await this.transporter.sendMail(mailOptions);
+  }
+
   public async sendVerificationEmail(
     email: string,
     token: string,
@@ -11,18 +40,6 @@ export class MailService {
   ) {
     const verificationLink = `${callbackUrl}?token=${token}`;
 
-    const transporter = nodemailer.createTransport({
-      host: config.mail.host,
-      port: 465,
-      secure: true,
-      auth: {
-        user: config.mail.user,
-        pass: config.mail.pass,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
 
     const mailOptions = {
       from: '"Chronos"',
@@ -32,7 +49,7 @@ export class MailService {
       html: verificationTemplate(verificationLink),
     };
 
-    await transporter.sendMail(mailOptions);
+    await this.transporter.sendMail(mailOptions);
   }
 
   public async sendPasswordResetEmail(
@@ -42,16 +59,6 @@ export class MailService {
   ) {
     const resetLink = `${callbackUrl}?token=${token}`;
 
-    const transporter = nodemailer.createTransport({
-      host: config.mail.host,
-      port: 465,
-      secure: true,
-      auth: {
-        user: config.mail.user,
-        pass: config.mail.pass,
-      },
-    });
-
     const mailOptions = {
       from: '"Chronos"',
       to: email,
@@ -60,6 +67,6 @@ export class MailService {
       html: passwordResetTemplate(resetLink),
     };
 
-    await transporter.sendMail(mailOptions);
+    await this.transporter.sendMail(mailOptions);
   }
 }

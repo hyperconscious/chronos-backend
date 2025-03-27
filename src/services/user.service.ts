@@ -59,8 +59,6 @@ export class UserService {
 
     newUser.hashPassword();
 
-    
-
     return this.userRepository.save(newUser);
   }
 
@@ -141,8 +139,9 @@ export class UserService {
   }
 
   public async deleteUser(id: number): Promise<boolean> {
+    const user = await this.getUserById(id);
     try {
-      const user = await this.getUserById(id);
+      
       await this.userRepository.remove(user);
       return true;
     } catch (error) {
