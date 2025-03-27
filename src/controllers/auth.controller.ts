@@ -64,8 +64,8 @@ export class AuthController {
       let startDate = new Date(holiday.date);
       let endDate = new Date(holiday.date);
 
-      startDate.setUTCHours(0, 0, 0, 0);
-      endDate.setUTCHours(23, 59, 0, 0);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 0, 0);
 
       let now = new Date();
       if (startDate < now) {
@@ -82,12 +82,12 @@ export class AuthController {
         type: EventType.Reminder
       }, user.id, calendar.id);
     }
-    const mailToken = AuthController.jwtService.generateEmailToken(user);
-    await AuthController.mailService.sendVerificationEmail(
-      user.email,
-      mailToken,
-      req.headers['x-callback-url'] as string,
-    );
+    // const mailToken = AuthController.jwtService.generateEmailToken(user);
+    // await AuthController.mailService.sendVerificationEmail(
+    //   user.email,
+    //   mailToken,
+    //   req.headers['x-callback-url'] as string,
+    // );
 
     return res.status(StatusCodes.CREATED).json({ accessToken, refreshToken });
   }
