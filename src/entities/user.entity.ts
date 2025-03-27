@@ -15,6 +15,7 @@ import * as bcrypt from 'bcryptjs';
 import { Calendar } from './calendar.entity';
 import { Event } from './event.entity';
 import { UserInCalendar } from './userInCalendar.entity';
+import { Notification } from './notification.entity';
 
 
 @Entity()
@@ -48,6 +49,9 @@ export class User {
 
     @OneToMany(() => Event, event => event.creator)
     createdEvents?: Event[];
+
+    @OneToMany(() => Notification, (notification) => notification.user)
+    notifications!: Notification[];
 
     @Column()
     @CreateDateColumn()
