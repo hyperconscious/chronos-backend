@@ -12,7 +12,6 @@ const calendarService = new CalendarService();
 const notificationService = new NotificationService();
 
 async function scheduleMailSending() {
-    console.log('mailer cron job running');
     const now = new Date();
     const startingEvents = await eventService.getEventsStartingAt(now);
     for (const event of startingEvents) {

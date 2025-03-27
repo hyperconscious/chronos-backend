@@ -15,8 +15,6 @@ import axios from 'axios';
 
 
 export class UserController {
-  private static jwtService = new JWTService();
-  private static mailService = new MailService();
   private static userService = new UserService();
   private static calendarService = new CalendarService();
 

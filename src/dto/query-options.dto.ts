@@ -19,7 +19,6 @@ export interface QueryOptions {
   sortField?: string;
   sortDirection?: 'ASC' | 'DESC';
   filters?: Filters;
-  creatorId?: number;
   search?: string;
   searchType?: SearchType;
 }

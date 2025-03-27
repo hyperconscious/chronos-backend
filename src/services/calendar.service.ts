@@ -183,7 +183,7 @@ export class CalendarService {
     public async getMyCalendars(user: User): Promise<any> {
         const calendars = await AppDataSource.getRepository(UserInCalendar).find({
             where: { user: { id: user.id }, role: UserRole.owner },
-            relations: ['users'],
+            relations: ['user', 'calendar'],
         });
         return calendars;
     }
