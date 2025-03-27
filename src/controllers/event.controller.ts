@@ -7,6 +7,7 @@ import { StatusCodes } from 'http-status-codes';
 import { queryOptionsDto, QueryOptions } from '../dto/query-options.dto';
 import { createEventDto, updateEventDto } from '../dto/event.dto';
 import { Paginator } from '../utils/paginator';
+import { UserRole } from '../entities/userInCalendar.entity';
 
 export class EventController {
     private static eventService = new EventService();
@@ -27,7 +28,7 @@ export class EventController {
 
     public static async getAllEvents(req: Request, res: Response) {
         const queryOptions = EventController.validateQueryDto(req);
-        
+
         if (!req.user) {
             throw new UnauthorizedError('You need to be logged in.');
         }
@@ -38,7 +39,6 @@ export class EventController {
 
     public static async getEventById(req: Request, res: Response) {
         const eventId = parseInt(req.params.id, 10);
-        
         if (!eventId) {
             throw new BadRequestError('Event ID is required');
         }
@@ -49,7 +49,6 @@ export class EventController {
 
     public static async updateEvent(req: Request, res: Response) {
         const eventId = parseInt(req.params.id, 10);
-        
         if (!eventId) {
             throw new BadRequestError('Event ID is required');
         }
@@ -63,7 +62,7 @@ export class EventController {
 
         // Check if the user is the event creator
         const event = await EventController.eventService.getEventById(eventId);
-        
+
         if (event.creator.id !== req.user.id) {
             throw new ForbiddenError('You are not allowed to update this event.');
         }
@@ -74,7 +73,7 @@ export class EventController {
 
     public static async deleteEvent(req: Request, res: Response) {
         const eventId = parseInt(req.params.id, 10);
-        
+
         if (!eventId) {
             throw new BadRequestError('Event ID is required');
         }
@@ -85,7 +84,7 @@ export class EventController {
 
         // Check if the user is the event creator
         const event = await EventController.eventService.getEventById(eventId);
-        
+
         if (event.creator.id !== req.user.id) {
             throw new ForbiddenError('You are not allowed to delete this event.');
         }
@@ -102,14 +101,11 @@ export class EventController {
         const calendarId = parseInt(req.params.calendarId, 10);
         const eventDto = await createEventDto.validateAsync(req.body);
 
-        // Verify the calendar exists and user has access
         const calendar = await EventController.calendarService.getCalendarById(calendarId);
-        
-        // Check if user is the calendar owner or a visitor
-        const isOwner = calendar.owner.id === req.user.id;
-        const isVisitor = calendar.visitors?.some(visitor => visitor.id === req.user?.id);
+        const UserInCalendar = await EventController.calendarService.checkUser(calendarId, req.user.id);
 
-        if (!isOwner && !isVisitor) {
+        if(!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin && UserInCalendar.role !== UserRole.editor))
+        {
             throw new ForbiddenError('You do not have permission to add events to this calendar.');
         }
 

@@ -58,7 +58,7 @@ export class UserController {
       throw new BadRequestError('Password confirmation does not match.');
     }
 
-   
+
     let verified = false;
 
     const newUser = await UserController.userService.createUser({
@@ -66,19 +66,18 @@ export class UserController {
       verified,
     });
 
-    
 
     return res.status(StatusCodes.CREATED).json({ data: newUser });
   }
 
-  
+
 
   public static async updateUser(req: Request, res: Response) {
     const callbackUrl = req.headers['x-callback-url'];
     const userData = req.body;
     const userId = req.user!.id;
 
-    if (userId !== parseInt(req.params.user_id, 10)) 
+    if (userId !== parseInt(req.params.user_id, 10))
     {
       throw new ForbiddenError('You are not authorized to update this user.');
     }
@@ -131,15 +130,21 @@ export class UserController {
       .json({ message: 'Avatar uploaded successfully.', data: updatedUser });
   }
 
+
   public static async deleteUser(req: Request, res: Response) {
+    if(!req.user)
+    {
+      throw new UnauthorizedError('You need to be logged in.');
+    }
     const userId = Number(req.params.user_id);
 
     if (
 
-      userId !== parseInt(req.params.user_id, 10)
+      userId !== req.user.id
     ) {
-      throw new ForbiddenError('You are not authorized to update this user.');
+      throw new ForbiddenError('You are not authorized to delete this user.');
     }
+    UserController.calendarService.deleteAllCalendarsOfUser(userId);
     await UserController.userService.deleteUser(userId);
     return res.status(StatusCodes.NO_CONTENT).json();
   }

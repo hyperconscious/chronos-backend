@@ -16,6 +16,7 @@ import {
   import { Event } from './event.entity';
 import { Tag } from './tag.entity';
 import { on } from 'events';
+import { UserInCalendar as UserInCalendar } from './userInCalendar.entity';
 
 @Entity()
 @Unique(['id'])
@@ -29,13 +30,8 @@ export class Calendar {
       @Column({ nullable: true })
       description?: string;
 
-      @ManyToOne(() => User, { eager: true })
-      @JoinColumn({ name: 'user_id' })
-      owner!: User;
-
-      @ManyToMany(() => User, (user) => user.sharedCalendars, { cascade: true })
-      @JoinTable()
-      visitors?: User[];
+      @OneToMany(() => UserInCalendar, user => user.id)
+      users?: UserInCalendar[];
 
       @OneToMany(() => Event, event => event.calendar, { cascade: true, onDelete: "CASCADE" })
       events?: Event[];

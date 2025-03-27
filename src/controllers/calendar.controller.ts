@@ -8,6 +8,7 @@ import { createEventDto, updateEventDto } from '../dto/event.dto';
 import { Paginator } from '../utils/paginator';
 import { UserService } from '../services/user.service';
 import { User } from '../entities/user.entity';
+import { UserRole } from '../entities/userInCalendar.entity';
 
 
 export class CalendarController {
@@ -33,7 +34,7 @@ export class CalendarController {
         }
         const userId = req.user.id;
         const user = await CalendarController.userService.getUserById(userId);
-        const calendars = user.sharedCalendars;
+        const calendars = user.calendarsRole;
         return res.status(StatusCodes.OK).json(calendars);
     }
 
@@ -46,16 +47,22 @@ export class CalendarController {
         const calendars = await CalendarController.calendarService.getMyCalendars(user);
         return res.status(StatusCodes.OK).json(calendars);
     }
-    
 
     public static async getAllEventsForCalendar(req: Request, res: Response) {
+        if (!req.user) {
+            throw new UnauthorizedError('You need to be logged in.');
+        }
         const queryOptions = CalendarController.validateQueryDto(req);
         const calendar_id = parseInt(req.params.id, 10);
-        
         if (!calendar_id) {
             throw new BadRequestError('Calendar ID is required');
         }
-        
+        const UserInCalendar = await CalendarController.calendarService.checkUser(calendar_id, req.user.id);
+
+        if(!UserInCalendar)
+        {
+            throw new ForbiddenError('You are not allowed to see events in this calendar.');
+        }
         queryOptions.filters = { calendar_id: calendar_id };
 
         const events = await CalendarController.eventService.getAllEvents(queryOptions);
@@ -63,12 +70,18 @@ export class CalendarController {
     }
 
     public static async createEvent(req: Request, res: Response) {
+        if (!req.user) {
+            throw new UnauthorizedError('You need to be logged in.');
+        }
         const eventDto = await createEventDto.validateAsync(req.body);
         const creatorID = req.user?.id;
         const calendarId = parseInt(req.params.id, 10);
 
-        if (!creatorID) {
-            throw new UnauthorizedError('You need to be logged in.');
+        const UserInCalendar = await CalendarController.calendarService.checkUser(calendarId, req.user.id);
+
+        if(!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin && UserInCalendar.role !== UserRole.editor))
+        {
+            throw new ForbiddenError('You are not allowed to create events in this calendar.');
         }
 
         const newEvent = await CalendarController.eventService.createEvent(eventDto, creatorID, calendarId);
@@ -83,9 +96,9 @@ export class CalendarController {
         }
 
         const calendarId = parseInt(req.params.id, 10);
-        const calendar = await CalendarController.calendarService.getCalendarById(calendarId);
+        const UserInCalendar = await CalendarController.calendarService.checkUser(calendarId, req.user.id);
 
-        if(calendar.owner.id !== req.user.id) {
+        if(!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin)) {
             throw new ForbiddenError('You are not allowed to share this calendar.');
         }
 
@@ -93,29 +106,38 @@ export class CalendarController {
         for (let i = 0; i < req.body.usersId.length; i++) {
             usersId.push(parseInt(req.body.usersId[i]));
         }
-        
         const sharedCalendar = await CalendarController.calendarService.shareCalendar(calendarId, usersId);
 
         return res.status(StatusCodes.CREATED).json({ data: sharedCalendar });
     }
 
     public static async getCalendarById(req: Request, res: Response) {
+        if(!req.user){
+            throw new UnauthorizedError('You need to be logged in.');
+        }
         const calendarId = parseInt(req.params.id, 10);
         if (!calendarId) {
             throw new BadRequestError('Calendar ID is required');
+        }
+        const UserInCalendar = await CalendarController.calendarService.checkUser(calendarId, req.user.id);
+        if(!UserInCalendar){
+            throw new ForbiddenError('You are not allowed to see this calendar.');
         }
         const calendar = await CalendarController.calendarService.getCalendarById(calendarId);
         return res.status(StatusCodes.OK).json(calendar);
     }
-  
 
     public static async updateCalendar(req: Request, res: Response) {
+        if(!req.user){
+            throw new UnauthorizedError('You need to be logged in.');
+        }
         const calendarId = parseInt(req.params.id, 10);
         if (!calendarId) {
             throw new BadRequestError('Calendar ID is required');
         }
 
-        if(!(req.user?.id === calendarId)) {
+        const UserInCalendar = await CalendarController.calendarService.checkUser(calendarId, req.user.id);
+        if(!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin)){
             throw new ForbiddenError('You are not allowed to update this calendar.');
         }
         const calendarDto = req.body;
@@ -129,9 +151,12 @@ export class CalendarController {
         if (!calendarId) {
             throw new BadRequestError('Calendar ID is required');
         }
+        if (!req.user) {
+            throw new UnauthorizedError('You need to be logged in.');
+        }
 
-        const calendar = await CalendarController.calendarService.getCalendarById(calendarId);
-        if(!(req.user?.id === calendar.owner.id)) {
+        const UserInCalendar = await CalendarController.calendarService.checkUser(calendarId, req.user.id);
+        if(!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin)){
             throw new ForbiddenError('You are not allowed to delete this calendar.');
         }
 
@@ -145,9 +170,8 @@ export class CalendarController {
         if (!calendarId || !visitorId) {
             throw new BadRequestError('Calendar ID and visitor ID are required');
         }
-        const calendar = await CalendarController.calendarService.checkVisitor(calendarId, visitorId);
+        const calendar = await CalendarController.calendarService.checkUser(calendarId, visitorId);
         return res.status(StatusCodes.OK).json(calendar);
-    
     }
 
     public static async addVisitorToCalendar(req: Request, res: Response) {
@@ -156,7 +180,7 @@ export class CalendarController {
         if (!calendarId || !visitorId) {
             throw new BadRequestError('Calendar ID and visitor ID are required');
         }
-        const calendar = await CalendarController.calendarService.addVisitorToCalendar(calendarId, visitorId);
+        const calendar = await CalendarController.calendarService.addUserToCalendar(calendarId, visitorId);
         return res.status(StatusCodes.OK).json(calendar);
     }
 
@@ -166,7 +190,17 @@ export class CalendarController {
         if (!calendarId || !visitorId) {
             throw new BadRequestError('Calendar ID and visitor ID are required');
         }
-        const calendar = await CalendarController.calendarService.removeVisitorFromCalendar(calendarId, visitorId);
+        const calendar = await CalendarController.calendarService.removeUserFromCalendar(calendarId, visitorId);
+        return res.status(StatusCodes.OK).json(calendar);
+    }
+
+    public static async setOwner(req: Request, res: Response) {
+        const calendarId = parseInt(req.params.id, 10);
+        const ownerId = parseInt(req.body.ownerId, 10);
+        if (!calendarId || !ownerId) {
+            throw new BadRequestError('Calendar ID and owner ID are required');
+        }
+        const calendar = await CalendarController.calendarService.setOwner(calendarId, ownerId);
         return res.status(StatusCodes.OK).json(calendar);
     }
 }

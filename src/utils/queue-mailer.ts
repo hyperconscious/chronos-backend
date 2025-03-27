@@ -3,8 +3,10 @@ import nodemailer from 'nodemailer';
 import { EventService } from '../services/event.service';
 import config from '../config/env.config';
 import { EventRecurrence } from '../entities/event.entity';
+import { CalendarService } from '../services/calendar.service';
 
 const eventService = new EventService();
+const calendarService = new CalendarService();
 
 const transporter = nodemailer.createTransport({
     host: config.mail.host,
@@ -29,7 +31,6 @@ async function sendEmail(to: string, subject: string, message: string) {
 }
 
 
-
 export function startCron()
 {
     console.log('Starting mailer cron job');
@@ -37,8 +38,9 @@ export function startCron()
         const now = new Date();
         const startingEvents = await eventService.getEventsStartingAt(now);
         for (const event of startingEvents) {
+            const owner = await calendarService.getCalendarOwner(event.calendar.id);
             try {
-                await sendEmail(event.calendar.owner.email, `Event started: ${event.title}`, `Event "${event.title}" Starts right now. \n ${event.description}`);
+                await sendEmail(owner.user.email, `Event started: ${event.title}`, `Event "${event.title}" Starts right now. \n ${event.description}`);
                 console.log(await eventService.markEventAsNotified(event));
             } catch (error) {
                 console.log(error);
@@ -46,9 +48,10 @@ export function startCron()
         }
         const endingEvents = await eventService.getEventsEndingAt(now);
         for (const event of endingEvents) {
+            const owner = await calendarService.getCalendarOwner(event.calendar.id);
             if (event.recurrence === EventRecurrence.None)
             {
-                await sendEmail(event.calendar.owner.email, `Event ended: ${event.title}`, `Event "${event.title}" Ends right now.`);
+                await sendEmail(owner.user.email, `Event ended: ${event.title}`, `Event "${event.title}" Ends right now.`);
                 await eventService.markEventAsCompleted(event);
             } else {
                 const newStart = getNextOccurrence(event.startTime, event.recurrence);
@@ -56,7 +59,7 @@ export function startCron()
                     const newEnd = getNextOccurrence(event.endTime, event.recurrence);
                     await eventService.updateEventTimeRange(event, newStart, newEnd);
                 }
-                await sendEmail(event.calendar.owner.email, `Event ended: ${event.title}`, `Event "${event.title}" again ${event.recurrence}.`);
+                await sendEmail(owner.user.email, `Event ended: ${event.title}`, `Event "${event.title}" again ${event.recurrence}.`);
             }
         }
     });

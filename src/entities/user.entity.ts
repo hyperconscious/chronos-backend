@@ -14,6 +14,7 @@ import { IsEmail, Length } from 'class-validator';
 import * as bcrypt from 'bcryptjs';
 import { Calendar } from './calendar.entity';
 import { Event } from './event.entity';
+import { UserInCalendar } from './userInCalendar.entity';
 
 
 @Entity()
@@ -42,14 +43,11 @@ export class User {
     @Column({ default: '' })
     avatar?: string;
 
-    @ManyToMany(() => Calendar, calendar => calendar.visitors)
-    sharedCalendars!: Calendar[];
-
-    @OneToMany(() => Calendar, calendar => calendar.owner)
-    calendars!: Calendar[];
+    @OneToMany(() => UserInCalendar, uic => uic.user)
+    calendarsRole?: UserInCalendar[];
 
     @OneToMany(() => Event, event => event.creator)
-    createdEvents!: Event[];
+    createdEvents?: Event[];
 
     @Column()
     @CreateDateColumn()

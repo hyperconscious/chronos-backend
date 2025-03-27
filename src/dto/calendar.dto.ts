@@ -11,21 +11,6 @@ export const createCalendarDto = Joi.object({
     'string.max': 'Description must be at most 500 characters long.'
   }),
 
-  ownerId: Joi.number().integer().positive().optional().messages({
-    'number.base': 'Owner ID must be a number.',
-    'number.integer': 'Owner ID must be an integer.',
-    'number.positive': 'Owner ID must be a positive number.',
-  }),
-
-  events: Joi.array()
-    .items(Joi.number().integer().positive())
-    .unique()
-    .messages({
-      'array.unique': 'Event IDs must be unique.',
-      'number.base': 'Event ID must be a number.',
-      'number.integer': 'Event ID must be an integer.',
-      'number.positive': 'Event ID must be a positive number.'
-    })
 });
 
 export const updateCalendarDto = Joi.object({
@@ -38,19 +23,5 @@ export const updateCalendarDto = Joi.object({
     'string.max': 'Description must be at most 500 characters long.'
   }),
 
-  ownerId: Joi.number().integer().positive().optional().messages({
-    'number.base': 'Owner ID must be a number.',
-    'number.integer': 'Owner ID must be an integer.',
-    'number.positive': 'Owner ID must be a positive number.',
-  }),
 
-  events: Joi.array()
-    .items(Joi.number().integer().positive())
-    .unique()
-    .messages({
-      'array.unique': 'Event IDs must be unique.',
-      'number.base': 'Event ID must be a number.',
-      'number.integer': 'Event ID must be an integer.',
-      'number.positive': 'Event ID must be a positive number.'
-    })
 }).min(1);
