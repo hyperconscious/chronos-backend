@@ -48,7 +48,14 @@ export class CalendarService {
 
         const newCalendar = this.calendarRepository.create(newCalendarData);
 
-        return this.calendarRepository.save(newCalendar);
+        const createdCalendar = await this.calendarRepository.save(newCalendar);
+
+        await this.userInCalendarRepository.save({
+            calendar: createdCalendar,
+            user: user,
+            role: UserRole.owner
+        });
+        return createdCalendar;
     }
 
     public async updateCalendar(id: number, calendarData: Partial<Calendar>): Promise<Calendar> {
