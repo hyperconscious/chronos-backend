@@ -196,15 +196,26 @@ export class CalendarController {
     }
 
     public static async getVisitorsForCalendar(req: Request, res: Response) {
-        if (!req.user) {
-            throw new UnauthorizedError('You need to be logged in.');
-        }
+        queryOptionsDto.validate(req.query, {
+            abortEarly: false,
+        });
+        const queryOptions = CalendarController.validateQueryDto(req);
         const calendarId = parseInt(req.params.id, 10);
-        return res.status(StatusCodes.OK).json(await CalendarController.calendarService.getVisitorsInCalendar(calendarId));
+        if (!calendarId) {
+            throw new BadRequestError('Calendar ID is required');
+        }
+        return res.status(StatusCodes.OK).json(await CalendarController.calendarService.getVisitorsInCalendar(calendarId, queryOptions));
+
+        // if (!req.user) {
+        //     throw new UnauthorizedError('You need to be logged in.');
+        // }
+        // const calendarId = parseInt(req.params.id, 10);
+        // return res.status(StatusCodes.OK).json(await CalendarController.calendarService.getVisitorsInCalendar(calendarId));
     }
 
     public static async removeVisitorFromCalendar(req: Request, res: Response) {
         const calendarId = parseInt(req.params.id, 10);
+        console.log(req.body);
         const visitorId = parseInt(req.body.visitorId, 10);
         if (!calendarId || !visitorId) {
             throw new BadRequestError('Calendar ID and visitor ID are required');

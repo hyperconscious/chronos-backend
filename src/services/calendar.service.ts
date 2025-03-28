@@ -3,12 +3,13 @@ import { BadRequestError, NotFoundError } from '../utils/http-errors';
 import { Calendar } from '../entities/calendar.entity';
 import { AppDataSource } from '../config/orm.config';
 import { createCalendarDto, updateCalendarDto } from '../dto/calendar.dto';
-import { Paginator, QueryOptions } from '../utils/paginator';
+import { Paginator } from '../utils/paginator';
 import { User } from '../entities/user.entity';
 import { Event } from '../entities/event.entity';
 import { UserService } from './user.service';
 import { create } from 'domain';
 import { UserInCalendar, UserRole } from '../entities/userInCalendar.entity';
+import { queryOptionsDto, QueryOptions } from '../dto/query-options.dto';
 
 export const enum ServiceMethod {
     update,
@@ -116,12 +117,21 @@ export class CalendarService {
         }
     }
 
-    public async getVisitorsInCalendar(calendarId: number): Promise<UserInCalendar[]> {
-        return await AppDataSource.getRepository(UserInCalendar).find(
-            {
-                where: { calendar: { id: calendarId }, role: Not(UserRole.owner) },
-                relations: ['user', 'calendar']
-            });
+    public async getVisitorsInCalendar(calendarId: number, queryOptions: QueryOptions
+    ): Promise<{ items: UserInCalendar[]; total: number }> {
+        const paginator = new Paginator<UserInCalendar>(queryOptions);
+        const queryBuilder = this.userInCalendarRepository.createQueryBuilder('userInCalendar')
+            .where('userInCalendar.calendar_id = :calendarId', { calendarId })
+            .andWhere('userInCalendar.role != :role', { role: UserRole.owner })
+            .leftJoinAndSelect('userInCalendar.user', 'user')
+            .leftJoinAndSelect('userInCalendar.calendar', 'calendar')
+            .addSelect(['calendar.id']);
+        return await paginator.paginate(queryBuilder);
+        // return await AppDataSource.getRepository(UserInCalendar).find(
+        //     {
+        //         where: { calendar: { id: calendarId }, role: Not(UserRole.owner) },
+        //         relations: ['user', 'calendar']
+        //     });
     }
 
 
@@ -287,6 +297,7 @@ export class CalendarService {
     }
 
     public async setRole(calendarId: number, userId: number, newRole: UserRole): Promise<void> {
+        console.log('setRole', calendarId, userId, newRole);
         const userInCalendar = await AppDataSource.getRepository(UserInCalendar).findOne(
             {
                 where: { user: { id: userId }, calendar: { id: calendarId } },
