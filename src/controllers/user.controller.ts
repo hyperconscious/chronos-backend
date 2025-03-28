@@ -46,6 +46,10 @@ export class UserController {
   }
 
   public static async getUserByMail(req: Request, res: Response) {
+
+    if(!req.body.email) {
+      throw new BadRequestError('Email is required.');
+    }
     const email = req.body.email;
     const user = await UserController.userService.getUserByEmailSafe(email);
     return res.status(StatusCodes.OK).json({ data: user });
