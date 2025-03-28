@@ -46,8 +46,16 @@ export class UserController {
   }
 
   public static async getUserByMail(req: Request, res: Response) {
+<<<<<<< HEAD
     const email = req.params.email;
     console.error(email);
+=======
+
+    if(!req.body.email) {
+      throw new BadRequestError('Email is required.');
+    }
+    const email = req.body.email;
+>>>>>>> 0946bf4a45fad7bf01f7d236abfc2f87b9995954
     const user = await UserController.userService.getUserByEmailSafe(email);
     if (!user) {
       throw new BadRequestError('User not found.');
