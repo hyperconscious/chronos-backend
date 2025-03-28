@@ -135,6 +135,12 @@ export class CalendarService {
         if (!user) {
             throw new NotFoundError('User not found');
         }
+        const isExists = await AppDataSource.getRepository(UserInCalendar).findOne({
+            where: { calendar: { id: calendarId }, user: { id: userId } },
+        });
+        if (isExists) {
+            throw new BadRequestError('User already exists in calendar');
+        }
         const userToAdd = await AppDataSource.getRepository(UserInCalendar).create({
             calendar: calendar,
             user: user,
@@ -209,7 +215,7 @@ export class CalendarService {
                 if (isExists) {
                     throw new BadRequestError('User already exists in calendar');
                 }
-                await AppDataSource.getRepository(UserInCalendar).create(roleData);
+                await AppDataSource.getRepository(UserInCalendar).save(roleData);
             }
             return this.calendarRepository.save(calendar);
         }

@@ -44,6 +44,7 @@ export class CalendarController {
         }
         const userId = req.user.id;
         const user = await CalendarController.userService.getUserById(userId);
+        //const calendars = await CalendarController.userService.getSharableCalendars(user);;
         const calendars = user.calendarsRole;
         return res.status(StatusCodes.OK).json(calendars);
     }
@@ -229,7 +230,6 @@ export class CalendarController {
         if (!calendarId || !userId || !role) {
             throw new BadRequestError('Calendar ID, user ID and role are required');
         }
-        
         const userInCalendar = await CalendarController.calendarService.checkUser(calendarId, userId);
         const calendar = await CalendarController.calendarService.setRole(calendarId, userId, role);
         return res.status(StatusCodes.OK).json(calendar);

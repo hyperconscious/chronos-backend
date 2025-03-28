@@ -29,6 +29,7 @@ export enum UserRole
 
 
 @Entity()
+@Unique(['user', 'calendar'])
 export class UserInCalendar {
     @PrimaryGeneratedColumn()
     id!: number;

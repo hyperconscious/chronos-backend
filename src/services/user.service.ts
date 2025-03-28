@@ -120,6 +120,7 @@ export class UserService {
     return await paginator.paginate(queryBuilder);
   }
 
+
   public async validateUserCredentials(
     loginOrEmail: string,
     password: string,
@@ -148,5 +149,7 @@ export class UserService {
       throw new Error('Unable to delete user due to existing dependencies.');
     }
   }
+
+  
 }
 
