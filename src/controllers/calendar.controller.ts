@@ -114,6 +114,7 @@ export class CalendarController {
         for (let i = 0; i < req.body.usersId.length; i++) {
             usersId.push(parseInt(req.body.usersId[i]));
         }
+        
         const sharedCalendar = await CalendarController.calendarService.shareCalendar(calendarId, usersId);
 
         return res.status(StatusCodes.CREATED).json({ data: sharedCalendar });
@@ -209,6 +210,28 @@ export class CalendarController {
             throw new BadRequestError('Calendar ID and owner ID are required');
         }
         const calendar = await CalendarController.calendarService.setOwner(calendarId, ownerId);
+        return res.status(StatusCodes.OK).json(calendar);
+    }
+
+    public static async setRole(req: Request, res: Response) {
+        if (!req.user) {
+            throw new UnauthorizedError('You need to be logged in.');
+        }
+        const calendarId = parseInt(req.params.id, 10);
+
+        const meInCalendar = await CalendarController.calendarService.checkUser(calendarId, req.user.id);
+
+        if (!meInCalendar || (meInCalendar.role !== UserRole.owner && meInCalendar.role !== UserRole.admin)) {
+            throw new ForbiddenError('You are not allowed to set role in this calendar.');
+        }
+        const userId = parseInt(req.body.userId, 10);
+        const role = req.body.role;
+        if (!calendarId || !userId || !role) {
+            throw new BadRequestError('Calendar ID, user ID and role are required');
+        }
+        
+        const userInCalendar = await CalendarController.calendarService.checkUser(calendarId, userId);
+        const calendar = await CalendarController.calendarService.setRole(calendarId, userId, role);
         return res.status(StatusCodes.OK).json(calendar);
     }
 }

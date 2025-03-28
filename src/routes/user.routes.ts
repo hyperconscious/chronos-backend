@@ -21,6 +21,7 @@ userRouter.patch(
 );
 
 userRouter.get('/:user_id', auth, UserController.getUserById);
+userRouter.get('/mail', auth, UserController.getUserByMail);
 
 userRouter.patch('/:user_id', auth, UserController.updateUser);
 

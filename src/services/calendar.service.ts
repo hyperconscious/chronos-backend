@@ -262,5 +262,27 @@ export class CalendarService {
             throw new NotFoundError('User not found in calendar');
         }
     }
+
+    public async setRole(calendarId : number, userId: number, newRole: UserRole): Promise<void> {
+        const userInCalendar = await AppDataSource.getRepository(UserInCalendar).findOne(
+            {
+                where: { user: { id: userId }, calendar: { id: calendarId } },
+                relations: ['user', 'calendar']
+            });
+
+        if (userInCalendar) {
+            if (userInCalendar.role === UserRole.owner) {
+                throw new BadRequestError('Owner cannot be removed from calendar');
+            }
+            if (newRole === UserRole.owner) {
+                throw new BadRequestError('Owner cannot be removed from calendar');
+            }
+            userInCalendar.role = newRole;
+            await AppDataSource.getRepository(UserInCalendar).save(userInCalendar);
+        }
+        else {
+            throw new NotFoundError('User not found in calendar');
+        }
+    }
 }
 

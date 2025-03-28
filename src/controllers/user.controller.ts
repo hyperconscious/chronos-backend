@@ -45,6 +45,12 @@ export class UserController {
     return res.status(StatusCodes.OK).json({ data: user });
   }
 
+  public static async getUserByMail(req: Request, res: Response) {
+    const email = req.params.email;
+    const user = await UserController.userService.getUserByEmailSafe(email);
+    return res.status(StatusCodes.OK).json({ data: user });
+  }
+
   public static async createUser(req: Request, res: Response) {
     const UserDto = await createUserDto.validateAsync(req.body);
     if (
