@@ -44,8 +44,7 @@ export class CalendarController {
         }
         const userId = req.user.id;
         const user = await CalendarController.userService.getUserById(userId);
-        //const calendars = await CalendarController.userService.getSharableCalendars(user);;
-        const calendars = user.calendarsRole;
+        const calendars = await CalendarController.calendarService.getSharedCalendars(user);
         return res.status(StatusCodes.OK).json(calendars);
     }
 
@@ -115,7 +114,7 @@ export class CalendarController {
         for (let i = 0; i < req.body.usersId.length; i++) {
             usersId.push(parseInt(req.body.usersId[i]));
         }
-        
+
         const sharedCalendar = await CalendarController.calendarService.shareCalendar(calendarId, usersId);
 
         return res.status(StatusCodes.CREATED).json({ data: sharedCalendar });
@@ -231,6 +230,9 @@ export class CalendarController {
             throw new BadRequestError('Calendar ID, user ID and role are required');
         }
         const userInCalendar = await CalendarController.calendarService.checkUser(calendarId, userId);
+        if (!userInCalendar) {
+            throw new NotFoundError('User is not in this calendar');
+        }
         const calendar = await CalendarController.calendarService.setRole(calendarId, userId, role);
         return res.status(StatusCodes.OK).json(calendar);
     }

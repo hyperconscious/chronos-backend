@@ -52,6 +52,9 @@ export class UserController {
     }
     const email = req.body.email;
     const user = await UserController.userService.getUserByEmailSafe(email);
+    if (!user) {
+      throw new BadRequestError('User not found.');
+    }
     return res.status(StatusCodes.OK).json({ data: user });
   }
 

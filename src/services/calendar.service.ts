@@ -1,4 +1,4 @@
-import { In, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { BadRequestError, NotFoundError } from '../utils/http-errors';
 import { Calendar } from '../entities/calendar.entity';
 import { AppDataSource } from '../config/orm.config';
@@ -198,6 +198,14 @@ export class CalendarService {
         return UserInCalendars;
     }
 
+    public async getSharedCalendars(user: User): Promise<any> {
+        const UserInCalendars = await AppDataSource.getRepository(UserInCalendar).find({
+            where: { user: { id: user.id }, role: Not(In([UserRole.owner])) },
+            relations: ['user', 'calendar',],
+        });
+        return UserInCalendars;
+    }
+
     public async shareCalendar(calendarId: number, usersIds: number[]): Promise<Calendar> {
         const calendar = await this.getCalendarById(calendarId);
         const visitors = await AppDataSource.getRepository(User).findBy({ id: In(usersIds || []) });
@@ -269,7 +277,7 @@ export class CalendarService {
         }
     }
 
-    public async setRole(calendarId : number, userId: number, newRole: UserRole): Promise<void> {
+    public async setRole(calendarId: number, userId: number, newRole: UserRole): Promise<void> {
         const userInCalendar = await AppDataSource.getRepository(UserInCalendar).findOne(
             {
                 where: { user: { id: userId }, calendar: { id: calendarId } },
