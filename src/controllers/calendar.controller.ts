@@ -28,6 +28,16 @@ export class CalendarController {
         return queryOptions;
     }
 
+    public static async createCalendar(req: Request, res: Response) {
+        if (!req.user) {
+            throw new UnauthorizedError('You need to be logged in.');
+        }
+        const calendarDto = req.body;
+        const creatorID = req.user.id;
+        const newCalendar = await CalendarController.calendarService.createCalendar(calendarDto, creatorID);
+        return res.status(StatusCodes.CREATED).json({ data: newCalendar });
+    }
+
     public static async getAvaibleSharedCalendars(req: Request, res: Response) {
         if (!req.user) {
             throw new UnauthorizedError('You need to be logged in.');

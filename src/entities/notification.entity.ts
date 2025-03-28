@@ -41,11 +41,11 @@ export class Notification {
     @Column({ default: false })
     isRead!: boolean;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { onDelete: 'CASCADE' })
     @JoinColumn()
     user!: User;
 
-    @ManyToOne(() => Event, { nullable: true })
+    @ManyToOne(() => Event, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn()
     relatedEvent?: Event;
 
