@@ -178,11 +178,11 @@ export class CalendarService {
     }
 
     public async getMyCalendars(user: User): Promise<any> {
-        const calendars = await AppDataSource.getRepository(UserInCalendar).find({
+        const UserInCalendars = await AppDataSource.getRepository(UserInCalendar).find({
             where: { user: { id: user.id }, role: UserRole.owner },
             relations: ['user', 'calendar',],
         });
-        return calendars;
+        return UserInCalendars;
     }
 
     public async shareCalendar(calendarId: number, usersIds: number[]): Promise<Calendar> {

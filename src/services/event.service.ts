@@ -7,6 +7,7 @@ import { Paginator, QueryOptions } from '../utils/paginator';
 import { User } from '../entities/user.entity';
 import { Calendar } from '../entities/calendar.entity';
 import { UserInCalendar } from '../entities/userInCalendar.entity';
+import { Notification } from '../entities/notification.entity';
 
 export const enum ServiceMethod {
   create,
@@ -15,9 +16,11 @@ export const enum ServiceMethod {
 
 export class EventService {
   private eventRepository: Repository<Event>;
+  private notificationRepository: Repository<Notification>;
 
   constructor() {
     this.eventRepository = AppDataSource.getRepository(Event);
+    this.notificationRepository = AppDataSource.getRepository(Notification);
   }
 
   private validateEventDTO(eventData: Partial<Event>, method: ServiceMethod) {
@@ -116,7 +119,7 @@ export class EventService {
   public async getEventById(id: number): Promise<Event> {
     const event = await this.eventRepository.findOne({
       where: { id },
-      relations: ['creator', 'calendars'],
+      relations: ['creator', 'calendar'],
     });
 
     if (!event) {
@@ -158,6 +161,9 @@ export class EventService {
   public async deleteEvent(id: number): Promise<boolean> {
     try {
       const event = await this.getEventById(id);
+      await this.notificationRepository.remove(
+        await this.notificationRepository.find({ where: { relatedEvent: { id } } })
+      );
       await this.eventRepository.remove(event);
       return true;
     } catch (error) {
