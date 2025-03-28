@@ -193,6 +193,14 @@ export class CalendarController {
         return res.status(StatusCodes.OK).json(calendar);
     }
 
+    public static async getVisitorsForCalendar(req: Request, res: Response) {
+        if (!req.user) {
+            throw new UnauthorizedError('You need to be logged in.');
+        }
+        const calendarId = parseInt(req.params.id, 10);
+        return res.status(StatusCodes.OK).json(await CalendarController.calendarService.getVisitorsInCalendar(calendarId));
+    }
+
     public static async removeVisitorFromCalendar(req: Request, res: Response) {
         const calendarId = parseInt(req.params.id, 10);
         const visitorId = parseInt(req.body.visitorId, 10);

@@ -8,6 +8,7 @@ calendarRouter.get('/shared-calendars', auth, CalendarController.getAvaibleShare
 calendarRouter.get('/my-calendars', auth, CalendarController.getMyCalendars);
 calendarRouter.get('/:id', auth, CalendarController.getCalendarById);
 calendarRouter.get('/:id/events', auth, CalendarController.getAllEventsForCalendar);
+calendarRouter.get('/:id/visitor', auth, CalendarController.getVisitorsForCalendar);
 
 calendarRouter.post('/', auth, CalendarController.createCalendar);
 calendarRouter.post('/:id/event', auth, CalendarController.createEvent);

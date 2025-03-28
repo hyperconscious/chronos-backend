@@ -116,6 +116,15 @@ export class CalendarService {
         }
     }
 
+    public async getVisitorsInCalendar(calendarId: number): Promise<UserInCalendar[]> {
+        return await AppDataSource.getRepository(UserInCalendar).find(
+            {
+                where: { calendar: { id: calendarId }, role: Not(UserRole.owner) },
+                relations: ['user', 'calendar']
+            });
+    }
+
+
     public async deleteAllCalendarsOfUser(userId: number) {
         try {
             const calendars = await AppDataSource.getRepository(UserInCalendar).findBy({ user: { id: userId }, role: UserRole.owner });
