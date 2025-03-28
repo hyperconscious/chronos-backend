@@ -187,10 +187,11 @@ export class CalendarController {
     public static async addVisitorToCalendar(req: Request, res: Response) {
         const calendarId = parseInt(req.params.id, 10);
         const visitorId = parseInt(req.body.visitorId, 10);
+        const role = req.body.role;
         if (!calendarId || !visitorId) {
             throw new BadRequestError('Calendar ID and visitor ID are required');
         }
-        const calendar = await CalendarController.calendarService.addUserToCalendar(calendarId, visitorId);
+        const calendar = await CalendarController.calendarService.addUserToCalendar(calendarId, visitorId, role);
         return res.status(StatusCodes.OK).json(calendar);
     }
 

@@ -55,9 +55,7 @@ export class EventController {
         }
 
         // Validate event data
-        console.log(req.body);
         const eventDto = await updateEventDto.validateAsync(req.body);
-        console.log(1);
 
         // Check if the user is the event creator
         const event = await EventController.eventService.getEventById(eventId);
