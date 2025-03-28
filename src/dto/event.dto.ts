@@ -33,6 +33,8 @@ export const createEventDto = Joi.object({
     recurrence: Joi.string().valid('none', 'daily', 'weekly', 'monthly', 'yearly').optional().messages({
         'any.only': 'Reccurence must be one of: none, daily, weekly, monthly, yearly.'
     }),
+
+    color: Joi.string().optional().allow('', null),
 });
 
   export const updateEventDto = Joi.object({
@@ -40,15 +42,11 @@ export const createEventDto = Joi.object({
       'string.min': 'Title must be at least 3 characters long.',
       'string.max': 'Title must be at most 100 characters long.'
     }),
-  
+
     description: Joi.string().max(500).allow('', null).messages({
       'string.max': 'Description must be at most 500 characters long.'
     }),
-  
-    status: Joi.string().valid('pending', 'in_progress', 'completed').messages({
-      'any.only': 'Status must be one of: pending, in_progress, completed.'
-    }),
-  
+
     start_time: Joi.date().greater('now').messages({
         'date.greater': 'Start date must be in the future.'
     }),
@@ -61,4 +59,3 @@ export const createEventDto = Joi.object({
         'any.only': 'Type must be one of: arrangement, reminder, task.'
     }),
   }).min(1);
-  

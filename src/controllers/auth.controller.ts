@@ -64,8 +64,8 @@ export class AuthController {
       let startDate = new Date(holiday.date);
       let endDate = new Date(holiday.date);
 
-      startDate.setUTCHours(0, 0, 0, 0);
-      endDate.setUTCHours(23, 59, 0, 0);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 0, 0);
 
       let now = new Date();
       if (startDate < now) {
