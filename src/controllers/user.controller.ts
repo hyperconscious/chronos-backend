@@ -7,12 +7,8 @@ import {
 } from '../utils/http-errors';
 import { StatusCodes } from 'http-status-codes';
 import { queryOptionsDto, QueryOptions } from '../dto/query-options.dto';
-import { JWTService } from '../services/jwt.service';
-import { MailService } from '../services/mail.service';
 import { createUserDto } from '../dto/user.dto';
 import { CalendarService } from '../services/calendar.service';
-import axios from 'axios';
-
 
 export class UserController {
   private static userService = new UserService();
@@ -75,8 +71,7 @@ export class UserController {
     const userData = req.body;
     const userId = req.user!.id;
 
-    if (userId !== parseInt(req.params.user_id, 10))
-    {
+    if (userId !== parseInt(req.params.user_id, 10)) {
       throw new ForbiddenError('You are not authorized to update this user.');
     }
     if (userData.login) {
@@ -130,8 +125,7 @@ export class UserController {
 
 
   public static async deleteUser(req: Request, res: Response) {
-    if(!req.user)
-    {
+    if (!req.user) {
       throw new UnauthorizedError('You need to be logged in.');
     }
     const userId = Number(req.params.user_id);

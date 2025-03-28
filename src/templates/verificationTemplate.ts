@@ -57,7 +57,8 @@ const verificationTemplate = (verificationLink: string): string => `
           <div class="container">
             <h1>Email Verification</h1>
             <p>Please verify your email by clicking the button below:</p>
-            <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNDFocDVtcjM1bDc3N2l6b2w0dWR0aGU0eGpsaGQ2cmZjcXVpM3J5ZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/54pMajJIlSuIRy8I5L/giphy.webp" width="480" height="360" style="max-width: 100%; border-radius: 10px;" alt="Password Reset GIF" />
+            <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjRhMnIwcWg4dnMyc3ZtZjQ4N2x3bTZwamZ6b3B3ZjBxbTI0cHlobCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3orif6QfEsdl6hsg6s/giphy.gif"
+             width="480" height="360" style="max-width: 100%; border-radius: 10px;" alt="Verefy gif" />
             <br>
             <a href="${verificationLink}" class="button">Verify Email</a>
           </div>

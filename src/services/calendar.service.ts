@@ -30,9 +30,9 @@ export class CalendarService {
         const { error } = dto.validate(calendarData, { abortEarly: false });
 
         if (error) {
-        throw new BadRequestError(
-            error.details.map((detail) => detail.message).join('; '),
-        );
+            throw new BadRequestError(
+                error.details.map((detail) => detail.message).join('; '),
+            );
         }
     }
 
@@ -40,7 +40,7 @@ export class CalendarService {
         const dto = createCalendarDto.validate(calendarData, { abortEarly: false });
         const user = await this.userService.getUserById(ownerId);
 
-        const newCalendarData : Calendar =
+        const newCalendarData: Calendar =
         {
             ...dto.value
         }
@@ -86,12 +86,11 @@ export class CalendarService {
 
         const owner = await AppDataSource.getRepository(UserInCalendar).findOne(
             {
-                where: {calendar: {id: calendar_id}, role: UserRole.owner},
+                where: { calendar: { id: calendar_id }, role: UserRole.owner },
                 relations: ['user']
             }
         );
-        if(!owner)
-        {
+        if (!owner) {
             throw new NotFoundError('Owner not found');
         }
         return owner;
@@ -112,7 +111,7 @@ export class CalendarService {
 
     public async deleteAllCalendarsOfUser(userId: number) {
         try {
-            const calendars = await AppDataSource.getRepository(UserInCalendar).findBy({ user: { id: userId }, role: UserRole.owner});
+            const calendars = await AppDataSource.getRepository(UserInCalendar).findBy({ user: { id: userId }, role: UserRole.owner });
             for (const calendar of calendars) {
                 this.deleteCalendar(calendar.calendar.id);
             }
@@ -125,7 +124,7 @@ export class CalendarService {
 
     public async addUserToCalendar(calendarId: number, userId: number, role: UserRole = UserRole.visitor): Promise<UserInCalendar> {
         const calendar = await this.getCalendarById(calendarId);
-        const user = await AppDataSource.getRepository(User).findOneBy({id: userId});
+        const user = await AppDataSource.getRepository(User).findOneBy({ id: userId });
         if (!user) {
             throw new NotFoundError('User not found');
         }
@@ -140,30 +139,28 @@ export class CalendarService {
 
     public async removeUserFromCalendar(calendarId: number, userId: number): Promise<void> {
         const calendar = await this.getCalendarById(calendarId);
-        const user = await AppDataSource.getRepository(User).findOneBy({id: userId});
+        const user = await AppDataSource.getRepository(User).findOneBy({ id: userId });
         if (!user) {
             throw new NotFoundError('User not found');
         }
         const objToDelete = await AppDataSource.getRepository(UserInCalendar).findOne({
-            where: {calendar: {id: calendarId}, user: {id: userId}}
+            where: { calendar: { id: calendarId }, user: { id: userId } }
         });
 
-        if(objToDelete == null)
-        {
+        if (objToDelete == null) {
             throw new NotFoundError('User not found in calendar');
         }
 
-        if(objToDelete.role === UserRole.owner)
-        {
+        if (objToDelete.role === UserRole.owner) {
             throw new BadRequestError('Owner cannot be removed from calendar');
         }
 
-        await AppDataSource.getRepository(UserInCalendar).delete({calendar: calendar, user: user});
+        await AppDataSource.getRepository(UserInCalendar).delete({ calendar: calendar, user: user });
     }
 
     public async addEventToCalendar(calendarId: number, eventId: number): Promise<Calendar> {
         const calendar = await this.getCalendarById(calendarId);
-        const event = await AppDataSource.getRepository(Event).findOneBy({id: eventId});
+        const event = await AppDataSource.getRepository(Event).findOneBy({ id: eventId });
 
         if (!event) {
             throw new NotFoundError('Event not found');
@@ -183,7 +180,7 @@ export class CalendarService {
     public async getMyCalendars(user: User): Promise<any> {
         const calendars = await AppDataSource.getRepository(UserInCalendar).find({
             where: { user: { id: user.id }, role: UserRole.owner },
-            relations: ['user', 'calendar'],
+            relations: ['user', 'calendar',],
         });
         return calendars;
     }
@@ -200,7 +197,8 @@ export class CalendarService {
                     user: visitor,
                 }
                 const isExists = await AppDataSource.getRepository(UserInCalendar).findOne({
-                    where: {calendar: {id: calendarId}, user: {id: visitor.id}},});
+                    where: { calendar: { id: calendarId }, user: { id: visitor.id } },
+                });
                 if (isExists) {
                     throw new BadRequestError('User already exists in calendar');
                 }
@@ -211,30 +209,28 @@ export class CalendarService {
         throw new NotFoundError('No users found');
     }
 
-    public async checkUser(calendarId: number, visitorId: number) : Promise<UserInCalendar | null>
-    {
+    public async checkUser(calendarId: number, visitorId: number): Promise<UserInCalendar | null> {
         return await AppDataSource.getRepository(UserInCalendar).findOne(
             {
                 where:
                 {
-                    calendar: {id: calendarId},
-                    user: {id: visitorId},
+                    calendar: { id: calendarId },
+                    user: { id: visitorId },
                 },
 
                 relations: ['user', 'calendar']
             });
     }
 
-    public async setOwner(calendarId: number, userId: number) : Promise<UserInCalendar>
-    {
+    public async setOwner(calendarId: number, userId: number): Promise<UserInCalendar> {
         const owners = await AppDataSource.getRepository(UserInCalendar).find(
             {
-                where: {calendar: {id: calendarId}, role: UserRole.owner},
+                where: { calendar: { id: calendarId }, role: UserRole.owner },
                 relations: ['user', 'calendar']
             });
 
         const calendar = await this.getCalendarById(calendarId);
-        const user = await AppDataSource.getRepository(User).findOneBy({id: userId});
+        const user = await AppDataSource.getRepository(User).findOneBy({ id: userId });
 
         if (!user) {
             throw new NotFoundError('User not found');
@@ -244,18 +240,18 @@ export class CalendarService {
         }
         const userInCalendar = await AppDataSource.getRepository(UserInCalendar).findOne(
             {
-                where: {calendar: {id: calendarId}
-                , user: {id: userId}},
+                where: {
+                    calendar: { id: calendarId }
+                    , user: { id: userId }
+                },
                 relations: ['user', 'calendar']
             });
 
-        if(userInCalendar)
-        {
+        if (userInCalendar) {
             userInCalendar.role = UserRole.owner;
             return await AppDataSource.getRepository(UserInCalendar).save(userInCalendar);
         }
-        else
-        {
+        else {
             throw new NotFoundError('User not found in calendar');
         }
     }

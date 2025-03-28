@@ -17,7 +17,6 @@ import { EventRecurrence, EventType } from '../entities/event.entity';
 import { UserRole } from '../entities/userInCalendar.entity';
 
 const isoCountries = require("i18n-iso-countries");
-
 export class AuthController {
   private static userService = new UserService();
   private static jwtService = new JWTService();
@@ -32,13 +31,14 @@ export class AuthController {
       full_name,
       passwordConfirmation,
       email,
-      countryCode
+      countryCode,
     } = req.body;
-    console.log(req.body);
+
     if (password !== passwordConfirmation) {
       throw new BadRequestError('Password confirmation does not match.');
     }
-    if(!isoCountries.isValid(countryCode)) {
+
+    if (!isoCountries.isValid(countryCode)) {
       throw new BadRequestError('Invalid country code.');
     }
     const holidays = await getHolidays(countryCode);
@@ -69,8 +69,8 @@ export class AuthController {
 
       let now = new Date();
       if (startDate < now) {
-          startDate.setFullYear(startDate.getFullYear() + 1);
-          endDate.setFullYear(endDate.getFullYear() + 1);
+        startDate.setFullYear(startDate.getFullYear() + 1);
+        endDate.setFullYear(endDate.getFullYear() + 1);
       }
 
       await AuthController.eventService.createEvent({
@@ -86,6 +86,7 @@ export class AuthController {
     // await AuthController.mailService.sendVerificationEmail(
     //   user.email,
     //   mailToken,
+    //   req.headers['x-callback-url'] as string,
     // );
 
     return res.status(StatusCodes.CREATED).json({ accessToken, refreshToken });
