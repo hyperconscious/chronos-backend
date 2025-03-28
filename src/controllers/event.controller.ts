@@ -55,7 +55,9 @@ export class EventController {
         }
 
         // Validate event data
+        console.log(req.body);
         const eventDto = await updateEventDto.validateAsync(req.body);
+        console.log(1);
 
         // Check if the user is the event creator
         const event = await EventController.eventService.getEventById(eventId);
@@ -100,8 +102,7 @@ export class EventController {
 
         const UserInCalendar = await EventController.calendarService.checkUser(calendarId, req.user.id);
 
-        if(!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin && UserInCalendar.role !== UserRole.editor))
-        {
+        if (!UserInCalendar || (UserInCalendar.role !== UserRole.owner && UserInCalendar.role !== UserRole.admin && UserInCalendar.role !== UserRole.editor)) {
             throw new ForbiddenError('You do not have permission to add events to this calendar.');
         }
 
