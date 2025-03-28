@@ -47,7 +47,11 @@ export class UserController {
 
   public static async getUserByMail(req: Request, res: Response) {
     const email = req.params.email;
+    console.error(email);
     const user = await UserController.userService.getUserByEmailSafe(email);
+    if (!user) {
+      throw new BadRequestError('User not found.');
+    }
     return res.status(StatusCodes.OK).json({ data: user });
   }
 
