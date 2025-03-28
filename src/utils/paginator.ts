@@ -10,7 +10,7 @@ export class Paginator<T> {
       sortDirection: paginationOptions.sortDirection || 'ASC',
       filters: paginationOptions.filters || {},
       search: paginationOptions.search || '',
-      searchType: paginationOptions.searchType || 'user',
+      searchType: paginationOptions.searchType || 'userName',
     };
   }
 
@@ -43,7 +43,7 @@ export class Paginator<T> {
 
     if (this.queryOptions.search) {
       const searchTerm = this.queryOptions.search.toString();
-      if (this.queryOptions.searchType === 'user') {
+      if (this.queryOptions.searchType === 'userName') {
         queryBuilder.andWhere(
           'user.login LIKE :searchTerm OR user.full_name LIKE :searchTermFull',
           {
@@ -51,11 +51,24 @@ export class Paginator<T> {
             searchTerm: `${searchTerm}%`,
           },
         );
+      } else if (this.queryOptions.searchType === 'userMail') {
+        queryBuilder.andWhere('user.email LIKE :searchTerm', {
+          searchTerm: `${searchTerm}%`,
+        });
       } else if (this.queryOptions.searchType === 'tag') {
         queryBuilder.andWhere('tag.name LIKE :searchTerm', {
           searchTerm: `${searchTerm}%`,
         });
+      } else if (this.queryOptions.searchType === 'event') {
+        queryBuilder.andWhere('event.title LIKE :searchTerm', {
+          searchTerm: `${searchTerm}%`,
+        });
+      } else if (this.queryOptions.searchType === 'calendar') {
+        queryBuilder.andWhere('calendar.title LIKE :searchTerm', {
+          searchTerm: `${searchTerm}%`,
+        });
       }
+
     }
 
     const total = await queryBuilder.getCount();

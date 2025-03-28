@@ -113,8 +113,8 @@ export class UserService {
   public async getAllUsers(
     queryOptions: QueryOptions,
   ): Promise<{ items: User[]; total: number }> {
-    queryOptions.searchType = 'user';
-    queryOptions.sortField = queryOptions.sortField || 'publisher_rating';
+    queryOptions.searchType = queryOptions.searchType || 'userName';
+    queryOptions.sortField = queryOptions.sortField || 'createdAt';
     const queryBuilder = this.userRepository.createQueryBuilder('user');
     const paginator = new Paginator<User>(queryOptions);
     return await paginator.paginate(queryBuilder);

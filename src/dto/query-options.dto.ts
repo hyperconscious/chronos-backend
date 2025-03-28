@@ -1,7 +1,7 @@
 import * as Joi from 'joi';
 import { BadRequestError } from '../utils/http-errors';
 
-export type SearchType = 'user' | 'event' | 'calendar' | 'tag' | 'notification';
+export type SearchType = 'userName' | 'userMail' | 'event' | 'calendar' | 'tag' | 'notification';
 
 export interface Filters {
   dateRange?: string;
@@ -38,7 +38,7 @@ export const queryOptionsDto = Joi.object({
     notificationId: Joi.number().integer().min(1).optional(),
   }).optional(),
   search: Joi.string().min(1).optional(),
-  searchType: Joi.string().valid('user', 'event', 'calendar').optional(),
+  searchType: Joi.string().valid('userName', 'userMail', 'event', 'calendar').optional(),
 });
 
 export function validateQueryDto(value: any): QueryOptions {

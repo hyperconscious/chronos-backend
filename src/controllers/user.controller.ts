@@ -28,7 +28,9 @@ export class UserController {
 
   public static async getAllUsers(req: Request, res: Response) {
     const queryOptions = UserController.validateQueryDto(req);
-
+    const { search, searchType } = req.body; //search valid values are 'userName' and 'userMail'
+    queryOptions.searchType = searchType || 'userName';
+    queryOptions.search = search || '' as string;
     const users = await UserController.userService.getAllUsers(queryOptions);
     return res.status(StatusCodes.OK).json(users);
   }
