@@ -30,7 +30,6 @@ export class Tag {
     description?: string;
 
     @ManyToMany(() => Event, event => event.tags)
-    @JoinTable()
     events?: Event[];
 
     @ManyToOne(() => Calendar, calendar => calendar.tags)

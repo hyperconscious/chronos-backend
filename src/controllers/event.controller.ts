@@ -61,8 +61,8 @@ export class EventController {
 
         // Check if the user is the event creator
         const event = await EventController.eventService.getEventById(eventId);
-
-        if (event.creator.id !== req.user.id) {
+        const userInCalendar = await EventController.calendarService.checkUser(event.calendar.id, req.user.id);
+        if (!userInCalendar || (userInCalendar.role !== UserRole.owner && userInCalendar.role !== UserRole.admin && userInCalendar.role !== UserRole.editor)) {
             throw new ForbiddenError('You are not allowed to update this event.');
         }
 

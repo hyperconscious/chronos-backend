@@ -120,6 +120,7 @@ export class CalendarController {
         return res.status(StatusCodes.CREATED).json({ data: sharedCalendar });
     }
 
+
     public static async getCalendarById(req: Request, res: Response) {
         if (!req.user) {
             throw new UnauthorizedError('You need to be logged in.');
