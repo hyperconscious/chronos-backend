@@ -46,7 +46,7 @@ export class UserController {
   }
 
   public static async getUserByMail(req: Request, res: Response) {
-    const email = req.params.email;
+    const email = req.body.email;
     const user = await UserController.userService.getUserByEmailSafe(email);
     return res.status(StatusCodes.OK).json({ data: user });
   }
